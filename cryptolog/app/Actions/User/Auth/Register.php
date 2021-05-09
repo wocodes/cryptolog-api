@@ -24,7 +24,11 @@ class Register extends Action
      */
     public function rules()
     {
-        return [];
+        return [
+            "name" => "required|string",
+            "email" => "required|email",
+            "password" => "required|string|min:5"
+        ];
     }
 
     /**
@@ -36,7 +40,7 @@ class Register extends Action
     {
         $data = [
             'name' => $this->name,
-            'email' => $this->username,
+            'email' => $this->email,
             'password' => bcrypt($this->password)
         ];
 
