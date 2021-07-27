@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Actions\User\Auth;
+namespace App\Actions\Assets\Logs;
 
-use App\Models\User;
+use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
 
-class Register extends Action
+class GetTopPerforming extends Action
 {
+    use JsonResponse;
+
     /**
      * Determine if the user is authorized to make this action.
      *
@@ -24,11 +26,7 @@ class Register extends Action
      */
     public function rules()
     {
-        return [
-            "name" => "required|string",
-            "username" => "required|string",
-            "password" => "required|string|min:5"
-        ];
+        return [];
     }
 
     /**
@@ -38,14 +36,8 @@ class Register extends Action
      */
     public function handle()
     {
-        $data = [
-            'name' => $this->name,
-            'email' => $this->username,
-            'password' => bcrypt($this->password)
-        ];
+        $topPerforming = $this->user()->assetLogs()->with('asset','assetType','platform')->get()->toArray();
 
-        $user = User::create($data);
-
-        return response()->json($user);
+        return JsonResponse::success($topPerforming,"Fetched Top Performing Assets");
     }
 }

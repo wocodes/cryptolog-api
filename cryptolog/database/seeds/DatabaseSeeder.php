@@ -11,6 +11,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // $this->call(UserSeeder::class);
+//        \Illuminate\Support\Facades\Artisan::call('passport:client --personal');
+
+         $this->call(UsersSeeder::class);
+         $this->call(PlatformsSeeder::class);
+         $this->call(AssetTypesSeeder::class);
+         $this->call(AssetsSeeder::class);
+         $this->call(AssetLogsSeeder::class);
     }
 }

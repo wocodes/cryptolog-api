@@ -25,7 +25,7 @@ class Login extends Action
     public function rules()
     {
         return [
-            "email" => "required|email",
+            "username" => "required|string",
             "password" => "required|string|min:5"
         ];
     }
@@ -37,7 +37,7 @@ class Login extends Action
      */
     public function handle()
     {
-        $user = User::where(['email' => $this->email])->first();
+        $user = User::where(['email' => $this->username])->first();
 
         if(!$user) {
             $response = [

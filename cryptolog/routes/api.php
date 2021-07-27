@@ -34,3 +34,8 @@ Route::prefix("user")->group(function() {
     Route::get('/', '\App\Actions\User\GetUser')->middleware('auth:api');
 });
 
+Route::prefix("logs")->group(function() {
+    Route::get('/', '\App\Actions\Assets\Logs\GetTopPerforming')->middleware('auth:api');
+    Route::get('/update', '\App\Actions\Assets\Logs\UpdateAssetLogs')->middleware('auth:api');
+});
+
