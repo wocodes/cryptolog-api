@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AssetLog extends Model
 {
-    protected $fillable = ["asset_type_id", "platform_id", "asset_id", "quantity_bought", "initial_value", "current_value", "profit_loss", "24_hr_change", "date_bought", "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_naira"];
+    protected $fillable = ["platform_id", "asset_id", "quantity_bought", "initial_value", "current_value", "profit_loss", "24_hr_change", "date_bought", "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_naira"];
 
 
     protected $with = ["asset"];
@@ -15,11 +15,6 @@ class AssetLog extends Model
     public function asset()
     {
         return $this->belongsTo(Asset::class);
-    }
-
-    public function assetType()
-    {
-        return $this->belongsTo(AssetType::class);
     }
 
     public function platform()

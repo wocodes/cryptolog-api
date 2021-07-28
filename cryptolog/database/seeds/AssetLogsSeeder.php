@@ -14,7 +14,6 @@ class AssetLogsSeeder extends Seeder
         $assets = [
             [
                 "user_id" => \App\Models\User::first()->id,
-                "asset_type_id" => \App\Models\AssetType::first()->id,
                 "platform_id" => \App\Models\Platform::first()->id,
                 "asset_id" => \App\Models\Asset::first()->id,
                 "quantity_bought" => 0.00026547,

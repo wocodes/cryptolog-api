@@ -36,7 +36,7 @@ class GetTopPerforming extends Action
      */
     public function handle()
     {
-        $topPerforming = $this->user()->assetLogs()->with('asset','assetType','platform')->get()->toArray();
+        $topPerforming = $this->user()->assetLogs()->with('asset.assetType','platform')->get()->toArray();
 
         return JsonResponse::success($topPerforming,"Fetched Top Performing Assets");
     }

@@ -12,8 +12,16 @@ class AssetsSeeder extends Seeder
     public function run()
     {
         $assets = [
-            ["name" => "Bitcoin", "symbol" => "BTC"],
-            ["name" => "Ethereum", "symbol" => "ETH"]
+            [
+                "name" => "Bitcoin",
+                "symbol" => "BTC",
+                "asset_type_id" => \App\Models\AssetType::where('name', 'Cryptocurrency')->first()->id
+            ],
+            [
+                "name" => "Ethereum",
+                "symbol" => "ETH",
+                "asset_type_id" => \App\Models\AssetType::where('name', 'Cryptocurrency')->first()->id
+            ]
         ];
 
         foreach ($assets as $asset)

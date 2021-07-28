@@ -16,7 +16,6 @@ class CreateAssetLogsTable extends Migration
         Schema::create('asset_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('asset_type_id');
             $table->unsignedBigInteger('platform_id')->nullable();
             $table->unsignedBigInteger('asset_id');
             $table->decimal('quantity_bought', 8, 8);
@@ -35,7 +34,6 @@ class CreateAssetLogsTable extends Migration
 
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('asset_id')->references('id')->on('assets');
-            $table->foreign('asset_type_id')->references('id')->on('asset_types');
             $table->foreign('platform_id')->references('id')->on('platforms');
         });
     }

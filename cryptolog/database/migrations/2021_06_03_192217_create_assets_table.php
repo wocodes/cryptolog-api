@@ -17,6 +17,7 @@ class CreateAssetsTable extends Migration
             $table->id();
             $table->string("name");
             $table->string("symbol");
+            $table->foreignId('asset_type_id')->constrained();
             $table->timestamps();
         });
     }
