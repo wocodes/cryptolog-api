@@ -20,15 +20,15 @@ class CreateAssetLogsTable extends Migration
             $table->unsignedBigInteger('asset_id');
             $table->decimal('quantity_bought', 8, 8);
             $table->decimal('initial_value');
-            $table->decimal('current_value');
-            $table->decimal('profit_loss');
-            $table->decimal('24_hr_change');
+            $table->decimal('current_value')->default(0);
+            $table->decimal('profit_loss')->default(0);
+            $table->decimal('24_hr_change')->default(0);
             $table->boolean('status')->default(1);
             $table->dateTime('date_bought');
-            $table->decimal('roi');
-            $table->decimal('daily_roi');
-            $table->decimal('current_price');
-            $table->dateTime('last_updated_at');
+            $table->decimal('roi')->default(0);
+            $table->decimal('daily_roi')->default(0);
+            $table->decimal('current_price')->default(0);
+            $table->dateTime('last_updated_at')->default(Carbon\Carbon::now());
             $table->decimal('profit_loss_naira')->nullable();
             $table->timestamps();
 

@@ -27,6 +27,6 @@ class CreatePlatformsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('exchanges');
+        Schema::dropIfExists('platforms');
     }
 }
