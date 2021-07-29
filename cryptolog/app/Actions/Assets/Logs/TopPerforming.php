@@ -2,13 +2,10 @@
 
 namespace App\Actions\Assets\Logs;
 
-use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
 
-class GetTopPerforming extends Action
+class TopPerforming extends Action
 {
-    use JsonResponse;
-
     /**
      * Determine if the user is authorized to make this action.
      *
@@ -36,8 +33,12 @@ class GetTopPerforming extends Action
      */
     public function handle()
     {
-        $topPerforming = $this->user()->assetLogs()->with('asset.assetType','platform')->get()->toArray();
-
-        return JsonResponse::success($topPerforming,"Fetched Top Performing Assets");
+        return $this->user()
+            ->assetLogs()
+            ->where('profit_loss', '>', 0)
+            ->orderBy('profit_loss', 'DESC')
+            ->limit(5)
+            ->with('asset.assetType','platform')
+            ->paginate(10);
     }
 }
