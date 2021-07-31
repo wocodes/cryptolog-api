@@ -7,11 +7,11 @@ namespace App\Traits;
 trait JsonResponse
 {
 
-    public static function success(array $data, $message = null, $code = null)
+    public static function success($data, $message = null, $code = null)
     {
         $responseData = [
             "message" => $message ?? "Successful",
-            "data" => $data,
+            "data" => !is_array($data) ? $data->toArray() : $data,
             "code" => $code ?? 200
         ];
 

@@ -7,6 +7,7 @@ use App\Models\AssetLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
 class UpdateAssetLogs extends Action
@@ -75,6 +76,9 @@ class UpdateAssetLogs extends Action
             $data = Http::retry(3)->get($url);
 
             $assetData = $data->json();
+
+            Log::info("Fetching update for {$pair}", [$assetData]);
+
             $this->currentAssetData[$assetSymbol] = array_merge($assetData, ["symbol" => $assetSymbol]);
         }
     }
