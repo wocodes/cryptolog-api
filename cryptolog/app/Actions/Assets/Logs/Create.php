@@ -39,6 +39,7 @@ class Create extends Action
             "asset_id" => $this->asset_id,
             "quantity_bought" => $this->quantity_bought,
             "initial_value" => $this->initial_value,
+            "current_value" => $this->initial_value,
             "date_bought" => $this->date_of_purchase
         ]);
 
