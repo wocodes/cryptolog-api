@@ -2,7 +2,6 @@
 
 namespace App\Exceptions;
 
-use HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -53,24 +52,23 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-//        return parent::render($request, $exception);
-
-        if ($exception instanceof MethodNotAllowedHttpException) {
-            return $this->errorResponse('The specified method for the request is invalid', 405);
-        }
-
-        if ($exception instanceof NotFoundHttpException) {
-            return $this->errorResponse('The specified URL cannot be found', 404);
-        }
-
-        if ($exception instanceof HttpException) {
-            return $this->errorResponse($exception->getMessage(), $exception->getStatusCode());
-        }
-
-        if (config('app.debug')) {
-            return parent::render($request, $exception);
-        }
-
-        return $this->errorResponse('Unexpected Exception. Try later', 500);
+        return parent::render($request, $exception);
+//        if ($exception instanceof MethodNotAllowedHttpException) {
+//            return $this->errorResponse('The specified method for the request is invalid', 405);
+//        }
+//
+//        if ($exception instanceof NotFoundHttpException) {
+//            return $this->errorResponse('The specified URL cannot be found', 404);
+//        }
+//
+//        if ($exception instanceof HttpException) {
+//            return $this->errorResponse($exception->getMessage(), $exception->getStatusCode());
+//        }
+//
+//        if (config('app.debug')) {
+//            return parent::render($request, $exception);
+//        }
+//
+//        return $this->errorResponse('Unexpected Exception. Try later', 500);
     }
 }
