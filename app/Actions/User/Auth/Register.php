@@ -25,9 +25,9 @@ class Register extends Action
     public function rules()
     {
         return [
-            "name" => "required|string",
-            "username" => "required|string",
-            "password" => "required|string|min:5"
+//            "name" => "required|string",
+//            "username" => "required|string",
+//            "password" => "required|string|min:5"
         ];
     }
 
@@ -38,6 +38,7 @@ class Register extends Action
      */
     public function handle()
     {
+        dd(3);
         $data = [
             'name' => $this->name,
             'email' => $this->username,
