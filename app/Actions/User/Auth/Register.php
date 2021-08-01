@@ -38,7 +38,6 @@ class Register extends Action
      */
     public function handle()
     {
-        return 5;
         $data = [
             'name' => $this->name,
             'email' => $this->username,
