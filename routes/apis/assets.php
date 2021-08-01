@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 Route::middleware('auth:api')->prefix("assets")->group(function() {
     Route::get('/', '\App\Actions\Assets\GetAll');
 //    Route::post('/', '')->middleware('auth:api');
