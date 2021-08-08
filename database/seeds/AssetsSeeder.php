@@ -11,16 +11,22 @@ class AssetsSeeder extends Seeder
      */
     public function run()
     {
+        $cryptocurrencyAssetType = \App\Models\AssetType::where('name', 'Cryptocurrency')->first();
         $assets = [
             [
                 "name" => "Bitcoin",
                 "symbol" => "BTC",
-                "asset_type_id" => \App\Models\AssetType::where('name', 'Cryptocurrency')->first()->id
+                "asset_type_id" => $cryptocurrencyAssetType->id
             ],
             [
                 "name" => "Ethereum",
                 "symbol" => "ETH",
-                "asset_type_id" => \App\Models\AssetType::where('name', 'Cryptocurrency')->first()->id
+                "asset_type_id" => $cryptocurrencyAssetType->id
+            ],
+            [
+                "name" => "Dogecoin",
+                "symbol" => "DOGE",
+                "asset_type_id" => $cryptocurrencyAssetType->id
             ]
         ];
 

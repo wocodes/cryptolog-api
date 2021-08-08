@@ -18,15 +18,15 @@ class AssetLogsSeeder extends Seeder
                 "asset_id" => \App\Models\Asset::first()->id,
                 "quantity_bought" => 0.00026547,
                 "initial_value" => 23.73,
-                "current_value" => 14.14,
-                "profit_loss" => 9.59,
-                "24_hr_change" => 5.589,
+                "current_value" => 0.0,
+                "profit_loss" => 0.0,
+                "24_hr_change" => 0.0,
                 "date_bought" => \Carbon\Carbon::today()->subDays(rand(2, 10)),
-                "roi" => 40.39,
-                "daily_roi" => 0.64,
-                "current_price" => 31702,
+                "roi" => 0.0,
+                "daily_roi" => 0.0,
+                "current_price" => 0.0,
                 "last_updated_at" => now(),
-                "profit_loss_naira" => 9.59*500
+                "profit_loss_naira" => 0.0
             ],
         ];
 
