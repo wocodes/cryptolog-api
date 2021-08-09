@@ -86,26 +86,28 @@ class UpdateAssetLogs extends Action
 
     private function updateLogs()
     {
-        if($this->user()) {
-            $query = $this->user()->assetLogs();
-        } else {
-            $query = AssetLog::query();
-        }
+
 
         foreach($this->currentAssetData as $datum)
         {
+            if($this->user()) {
+                $query = $this->user()->assetLogs();
+            } else {
+                $query = AssetLog::query();
+            }
+
             $query->whereHas('asset', function($query) use($datum) {
-                    $query->where('symbol', $datum["symbol"]);
-                })->update([
-                    "current_value" => DB::raw("`quantity_bought` * {$datum['bidPrice']}"),
-                    "profit_loss" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value`"),
-                    "24_hr_change" => $datum['priceChangePercent'],
-                    "roi" => (DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`")),
-                    "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
-                    "current_price" => $datum['bidPrice'],
-                    "last_updated_at" => now(),
-                    "profit_loss_naira" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` * 500")
-                ]);
+                $query->where('symbol', $datum["symbol"]);
+            })->update([
+                "current_value" => DB::raw("`quantity_bought` * {$datum['bidPrice']}"),
+                "profit_loss" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value`"),
+                "24_hr_change" => $datum['priceChangePercent'],
+                "roi" => (DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`")),
+                "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
+                "current_price" => $datum['bidPrice'],
+                "last_updated_at" => now(),
+                "profit_loss_naira" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` * 500")
+            ]);
         }
     }
 }
