@@ -86,8 +86,6 @@ class UpdateAssetLogs extends Action
 
     private function updateLogs()
     {
-
-
         foreach($this->currentAssetData as $datum)
         {
             if($this->user()) {
