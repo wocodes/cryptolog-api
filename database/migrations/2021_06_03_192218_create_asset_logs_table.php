@@ -22,11 +22,11 @@ class CreateAssetLogsTable extends Migration
             $table->decimal('initial_value', 16, 2);
             $table->decimal('current_value', 16, 2)->default(0.0);
             $table->decimal('profit_loss', 16, 2)->default(0.0);
-            $table->decimal('24_hr_change', 16, 8)->default(0.0);
+            $table->decimal('24_hr_change', 16, 4)->default(0.0);
             $table->boolean('status')->default(1);
             $table->dateTime('date_bought');
             $table->decimal('roi', 16, 2)->default(0.0);
-            $table->decimal('daily_roi', 16, 8)->default(0.0);
+            $table->decimal('daily_roi', 16, 4)->default(0.0);
             $table->decimal('current_price', 16, 2)->default(0.0);
             $table->dateTime('last_updated_at')->default(Carbon\Carbon::now());
             $table->decimal('profit_loss_naira', 16, 2)->nullable();
