@@ -104,7 +104,7 @@ class UpdateAssetLogs extends Action
                 "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
                 "current_price" => $datum['bidPrice'],
                 "last_updated_at" => now(),
-                "profit_loss_naira" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` * 500")
+                "profit_loss_naira" => DB::raw("`profit_loss` * 500")
             ]);
         }
     }
