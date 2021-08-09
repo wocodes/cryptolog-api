@@ -70,8 +70,10 @@ class UpdateAssetLogs extends Action
     {
         foreach($this->assets as $asset) {
             $assetSymbol = $asset->symbol;
+            $activeApi = $asset->assetType->activeApi;
+
             $pair = "{$assetSymbol}{$this->baseSymbol}";
-            $url = "https://api3.binance.com/api/v3/ticker/24hr?symbol={$pair}";
+            $url = $activeApi->host . "/ticker/24hr?symbol={$pair}";
 
             $data = Http::retry(3)->get($url);
 

@@ -16,6 +16,7 @@ class CreateAssetTypesTable extends Migration
         Schema::create('asset_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->foreignId('external_api_id')->nullable()->constrained();
             $table->timestamps();
         });
     }

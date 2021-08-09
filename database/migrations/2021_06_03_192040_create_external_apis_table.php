@@ -17,10 +17,10 @@ class CreateExternalApisTable extends Migration
             $table->id();
             $table->string('organization');
             $table->string('host');
-            $table->string('api_key');
+            $table->string('api_key')->nullable();
+            $table->json('meta')->nullable();
+            $table->boolean('active')->default(0);
             $table->timestamps();
-
-            $table->morphs();
         });
     }
 
