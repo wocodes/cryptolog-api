@@ -11,6 +11,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
+    const METAS = [
+        'settings.hide_balance' => 0,
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -41,5 +45,9 @@ class User extends Authenticatable
     public function assetLogs()
     {
         return $this->hasMany(AssetLog::class);
+    }
+
+    public function metas() {
+        return $this->morphMany(Meta::class, 'model');
     }
 }
