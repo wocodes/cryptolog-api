@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Actions\Platforms;
+namespace App\Actions\AssetTypes;
 
-use App\Models\Platform;
+use App\Models\AssetType;
 use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
 
-class GetAll extends Action
+class ReadAll extends Action
 {
     /**
      * Determine if the user is authorized to make this action.
@@ -35,7 +35,11 @@ class GetAll extends Action
      */
     public function handle()
     {
-        // Execute the action.
-        return response()->json(Platform::all()->toArray());
+        return AssetType::all();
+    }
+
+    public function jsonResponse($assets)
+    {
+        return JsonResponse::success($assets);
     }
 }

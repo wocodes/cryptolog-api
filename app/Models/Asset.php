@@ -16,4 +16,9 @@ class Asset extends Model
     {
         return $date->format('Y-m-d H:i:s');
     }
+
+    public function platforms()
+    {
+        return $this->belongsToMany(Platform::class);
+    }
 }
