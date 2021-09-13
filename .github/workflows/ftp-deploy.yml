@@ -1,0 +1,36 @@
+name: Build and Deploy via FTP
+on:
+  pull_request:
+    branches: [ master ]
+    types: [ closed ]
+
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
+        
+      - name: Setup Enviroment
+        uses: shivammathur/setup-php@v2
+        with:
+            php-version: '7.4'
+            
+#      - name: Speed up the packages installation process
+#       run: composer global require hirak/prestissimo
+        
+      - name: Install Packages
+        run: composer install --no-dev
+        
+      - name: Deploy to Server
+        uses: kosratdev/laravel-deploy-migrate@laravel
+        
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: premium66.web-hosting.com
+          username: advaaxrv
+          password: ${{ secrets.DEPLOY_FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /jaapps.com/apps/api-assetlog/
