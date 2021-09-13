@@ -21,7 +21,9 @@ jobs:
 #       run: composer global require hirak/prestissimo
         
       - name: Install Packages
-        run: composer install --no-dev
+        run: |
+          composer self-update
+          composer install
         
 #      - name: Deploy to Server
 #        uses: kosratdev/laravel-deploy-migrate@laravel
