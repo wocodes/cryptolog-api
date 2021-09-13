@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +27,12 @@ use Illuminate\Http\Request;
 //];
 
 
+require_once 'apis/admin.php';
 require_once 'apis/users.php';
-require_once 'apis/assets.php';
+
+Route::middleware('auth:api')->prefix("assets")->group(function ($router) {
+    require 'apis/assets.php';
+});
+
 require_once 'apis/logs.php';
 require_once 'apis/platforms.php';

@@ -50,4 +50,9 @@ class User extends Authenticatable
     public function metas() {
         return $this->morphMany(Meta::class, 'model');
     }
+
+    public function getIsAdminAttribute($value)
+    {
+        return (bool) $value;
+    }
 }

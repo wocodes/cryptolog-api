@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Asset extends Model
 {
+    protected $fillable = ['name', 'symbol', 'asset_type_id'];
+
     public function assetType()
     {
         return $this->belongsTo(AssetType::class);

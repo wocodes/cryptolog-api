@@ -60,7 +60,7 @@ class Login extends Action
         }
         $user->token = $user->createToken('user-token')->accessToken;
 
-        $user = $user->only('id', 'name', 'email', 'token');
+        $user = $user->only('id', 'name', 'email', 'token', 'is_admin');
         $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
 
         return response()->json($response);

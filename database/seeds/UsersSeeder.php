@@ -13,9 +13,14 @@ class UsersSeeder extends Seeder
     {
         $users = [
             [
-                "name" => "William Odiomonafe",
-                "email" => "william.odiomonafe@gmail.com",
+                "name" => "User 1",
+                "email" => "user1@assetlog.com",
                 "password" => bcrypt("password")
+            ],[
+                "name" => "Admin",
+                "email" => "admin@assetlog.com",
+                "password" => bcrypt("password"),
+                "is_admin" => 1 // admin user
             ],
         ];
 

@@ -2,13 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:api')->prefix("assets")->group(function() {
-    Route::get('/', '\App\Actions\Assets\Get');
-    Route::get('/types', '\App\Actions\AssetTypes\ReadAll');
-//    Route::post('/', '')->middleware('auth:api');
-//    Route::delete('/', '')->middleware('auth:api');
+$router->put('/log/{id}/sold', '\App\Actions\Assets\Logs\Sold');
 
+$router->get('/', '\App\Actions\Assets\Get');
+$router->get('/types', '\App\Actions\AssetTypes\ReadAll');
+$router->get('/report/earnings-summary', '\App\Actions\Assets\Report\EarningsSummary');
 
-    Route::get('/report/earnings-summary', '\App\Actions\Assets\Report\EarningsSummary');
+$router->middleware('admin')->group(function ($router) {
+    $router->get('/', '\App\Actions\Admin\Asset\ListAsset');
+    $router->post('/', '\App\Actions\Admin\Asset\CreateAsset');
 });
 
