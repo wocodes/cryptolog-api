@@ -2,6 +2,7 @@
 
 namespace App\Actions\Assets\Logs;
 
+use App\Models\Asset;
 use Lorisleiva\Actions\Action;
 
 class Create extends Action
@@ -17,13 +18,20 @@ class Create extends Action
     }
 
     /**
-     * Get the validation rules that apply to the action.
+     * ListPlatforms the validation rules that apply to the action.
      *
      * @return array
      */
     public function rules()
     {
-        return [];
+        return [
+            "platform_id" => "required_without:platform_name|integer",
+            "platform_name" => "required_without:platform_id|string",
+            "asset_id" => "required|integer",
+            "quantity_bought" => "required|string",
+            "initial_value" => "required|string",
+            "date_of_purchase" => "required|date",
+        ];
     }
 
     /**
@@ -33,9 +41,17 @@ class Create extends Action
      */
     public function handle()
     {
+        if ($this->platform_name) {
+            $platform = Create::make(['name' => $this->platform_name]);
+
+            // attach to asset_type_id
+            $assetTypeId = Asset::findOrFail($this->asset_id)->asset_type->id;
+            $platform->assetTypes()->attach([$assetTypeId]);
+        }
+
         // Execute the action.
         $this->user()->assetLogs()->create([
-            "platform_id" => $this->platform_id,
+            "platform_id" => $this->platform_id ?? $platform->id,
             "asset_id" => $this->asset_id,
             "quantity_bought" => $this->quantity_bought,
             "initial_value" => $this->initial_value,

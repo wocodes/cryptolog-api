@@ -30,9 +30,7 @@ use Illuminate\Support\Facades\Route;
 require_once 'apis/admin.php';
 require_once 'apis/users.php';
 
-Route::middleware('auth:api')->prefix("assets")->group(function ($router) {
-    require 'apis/assets.php';
-});
+require 'apis/assets.php';
 
 require_once 'apis/logs.php';
 require_once 'apis/platforms.php';

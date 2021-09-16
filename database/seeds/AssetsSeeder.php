@@ -32,7 +32,9 @@ class AssetsSeeder extends Seeder
 
         foreach ($assets as $asset)
         {
-            \App\Models\Asset::create($asset);
+            $asset = \App\Models\Asset::create($asset);
+
+            $asset->platforms()->attach(['platform_id' => 1]);
         }
     }
 }

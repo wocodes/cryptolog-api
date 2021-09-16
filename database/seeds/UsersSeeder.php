@@ -14,11 +14,11 @@ class UsersSeeder extends Seeder
         $users = [
             [
                 "name" => "User 1",
-                "email" => "user1@assetlog.com",
+                "email" => "user1@assetlog.jaapps.com",
                 "password" => bcrypt("password")
             ],[
                 "name" => "Admin",
-                "email" => "admin@assetlog.com",
+                "email" => "admin@assetlog.jaapps.com",
                 "password" => bcrypt("password"),
                 "is_admin" => 1 // admin user
             ],

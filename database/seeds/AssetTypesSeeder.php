@@ -26,7 +26,9 @@ class AssetTypesSeeder extends Seeder
 
         foreach ($types as $type)
         {
-            \App\Models\AssetType::create($type);
+            $assetType = \App\Models\AssetType::create($type);
+
+            $assetType->platforms()->attach([1]);
         }
     }
 }
