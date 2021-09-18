@@ -17,6 +17,8 @@ return [
 
     'default' => env('DB_CONNECTION', 'mysql'),
 
+    'timezone' => 'UTC',
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections

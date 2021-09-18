@@ -35,13 +35,15 @@ class Stats extends Action
     public function handle()
     {
         $data = [
-            "assets_count" => $this->getTotalAssets(),
-            "assets_value" => $this->getTotalAssetsValue()
+            "assets_count" => $this->getTotalAssetsCount(),
+            "assets_value" => $this->getTotalAssetsValue(),
+            "assets_profit" => $this->getTotalAssetsProfit(),
+            "assets_loss" => $this->getTotalAssetsLoss()
         ];
         return JsonResponse::success($data);
     }
 
-    private function getTotalAssets()
+    private function getTotalAssetsCount()
     {
         return $this->user()->assetLogs()->distinct('asset_id')->count();
     }
@@ -49,5 +51,15 @@ class Stats extends Action
     private function getTotalAssetsValue()
     {
         return $this->user()->assetLogs()->select('current_value')->sum('current_value');
+    }
+
+    private function getTotalAssetsProfit()
+    {
+        return $this->user()->assetLogs()->where('profit_loss', '>', 0)->select('profit_loss')->sum('profit_loss');
+    }
+
+    private function getTotalAssetsLoss()
+    {
+        return $this->user()->assetLogs()->where('profit_loss', '<', 0)->select('profit_loss')->sum('profit_loss');
     }
 }
