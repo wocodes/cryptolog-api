@@ -60,7 +60,7 @@ class GetLogs extends Action
                 break;
 
             default:
-                $logs = $this->user()->assetLogs()->with('asset.assetType','platform')->get();
+                $logs = $this->user()->assetLogs()->with('asset.assetType', 'platform', 'withdrawals')->get();
                 break;
         }
 

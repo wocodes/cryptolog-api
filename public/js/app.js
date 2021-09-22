@@ -9,7 +9,7 @@
 /******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
 /******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
+/******/ 		// CreateLog a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
@@ -306,7 +306,7 @@ var mergeConfig = __webpack_require__(/*! ./core/mergeConfig */ "./node_modules/
 var defaults = __webpack_require__(/*! ./defaults */ "./node_modules/axios/lib/defaults.js");
 
 /**
- * Create an instance of Axios
+ * CreateLog an instance of Axios
  *
  * @param {Object} defaultConfig The default config for the instance
  * @return {Axios} A new instance of Axios
@@ -324,7 +324,7 @@ function createInstance(defaultConfig) {
   return instance;
 }
 
-// Create the default instance to be exported
+// CreateLog the default instance to be exported
 var axios = createInstance(defaults);
 
 // Expose Axios class to allow class inheritance
@@ -488,7 +488,7 @@ var dispatchRequest = __webpack_require__(/*! ./dispatchRequest */ "./node_modul
 var mergeConfig = __webpack_require__(/*! ./mergeConfig */ "./node_modules/axios/lib/core/mergeConfig.js");
 
 /**
- * Create a new instance of Axios
+ * CreateLog a new instance of Axios
  *
  * @param {Object} instanceConfig The default config for the instance
  */
@@ -686,7 +686,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 var enhanceError = __webpack_require__(/*! ./enhanceError */ "./node_modules/axios/lib/core/enhanceError.js");
 
 /**
- * Create an Error with the specified message, config, error code, request and response.
+ * CreateLog an Error with the specified message, config, error code, request and response.
  *
  * @param {string} message The error message.
  * @param {Object} config The config.
@@ -7249,7 +7249,7 @@ function Sizzle( selector, context, results, seed ) {
 }
 
 /**
- * Create key-value caches of limited size
+ * CreateLog key-value caches of limited size
  * @returns {function(string, object)} Returns the Object data after storing it on itself with
  *	property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
  *	deleting the oldest entry
@@ -9783,7 +9783,7 @@ function createOptions( options ) {
 }
 
 /*
- * Create a callback list using the following parameters:
+ * CreateLog a callback list using the following parameters:
  *
  *	options: an optional list of space-separated options that will change how
  *			the callback list behaves or a more traditional option object
@@ -12079,7 +12079,7 @@ jQuery.Event = function( src, props ) {
 			returnTrue :
 			returnFalse;
 
-		// Create target properties
+		// CreateLog target properties
 		// Support: Safari <=6 - 7 only
 		// Target should not be a text node (#504, #13143)
 		this.target = ( src.target && src.target.nodeType === 3 ) ?
@@ -12099,7 +12099,7 @@ jQuery.Event = function( src, props ) {
 		jQuery.extend( this, props );
 	}
 
-	// Create a timestamp if incoming event doesn't have one
+	// CreateLog a timestamp if incoming event doesn't have one
 	this.timeStamp = src && src.timeStamp || Date.now();
 
 	// Mark it as fixed
@@ -12214,7 +12214,7 @@ jQuery.each( { focus: "focusin", blur: "focusout" }, function( type, delegateTyp
 	};
 } );
 
-// Create mouseenter/leave events using mouseover/out and event-time checks
+// CreateLog mouseenter/leave events using mouseover/out and event-time checks
 // so that event delegation works in jQuery.
 // Do the same for pointerenter/pointerleave and pointerover/pointerout
 //
@@ -15542,7 +15542,7 @@ function ajaxConvert( s, response, jqXHR, isSuccess ) {
 		// Work with a copy of dataTypes in case we need to modify it for conversion
 		dataTypes = s.dataTypes.slice();
 
-	// Create converters map with lowercased keys
+	// CreateLog converters map with lowercased keys
 	if ( dataTypes[ 1 ] ) {
 		for ( conv in s.converters ) {
 			converters[ conv.toLowerCase() ] = s.converters[ conv ];
@@ -15763,7 +15763,7 @@ jQuery.extend( {
 			// uncached part of the url
 			uncached,
 
-			// Create the final options object
+			// CreateLog the final options object
 			s = jQuery.ajaxSetup( {}, options ),
 
 			// Callbacks context
@@ -16450,7 +16450,7 @@ jQuery.ajaxTransport( function( options ) {
 					};
 				}
 
-				// Create the abort callback
+				// CreateLog the abort callback
 				callback = callback( "abort" );
 
 				try {
@@ -16938,7 +16938,7 @@ jQuery.fn.extend( {
 	}
 } );
 
-// Create scrollLeft and scrollTop methods
+// CreateLog scrollLeft and scrollTop methods
 jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( method, prop ) {
 	var top = "pageYOffset" === prop;
 
@@ -16992,7 +16992,7 @@ jQuery.each( [ "top", "left" ], function( _i, prop ) {
 } );
 
 
-// Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
+// CreateLog innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
 jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 	jQuery.each( {
 		padding: "inner" + name,
@@ -18660,7 +18660,7 @@ return jQuery;
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Create a new pristine `lodash` function using the `context` object.
+   * CreateLog a new pristine `lodash` function using the `context` object.
    *
    * @static
    * @memberOf _
@@ -18685,7 +18685,7 @@ return jQuery;
    * lodash.isFunction(lodash.bar);
    * // => true
    *
-   * // Create a suped-up `defer` in Node.js.
+   * // CreateLog a suped-up `defer` in Node.js.
    * var defer = _.runInContext({ 'setTimeout': setImmediate }).defer;
    */
   var runInContext = (function runInContext(context) {
@@ -32833,7 +32833,7 @@ return jQuery;
      * _.map(users, _.iteratee('user'));
      * // => ['barney', 'fred']
      *
-     * // Create custom iteratee shorthands.
+     * // CreateLog custom iteratee shorthands.
      * _.iteratee = _.wrap(_.iteratee, function(iteratee, func) {
      *   return !_.isRegExp(func) ? iteratee(func) : function(string) {
      *     return func.test(string);
@@ -34522,7 +34522,7 @@ function taskDebounce(fn) {
 var supportsMicroTasks = isBrowser && window.Promise;
 
 /**
-* Create a debounced version of a method, that's asynchronously deferred
+* CreateLog a debounced version of a method, that's asynchronously deferred
 * but called in the minimum time possible.
 *
 * @method

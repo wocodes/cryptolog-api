@@ -5,7 +5,7 @@ namespace App\Actions\Assets\Logs;
 use App\Models\Asset;
 use Lorisleiva\Actions\Action;
 
-class Create extends Action
+class CreateLog extends Action
 {
     /**
      * Determine if the user is authorized to make this action.
@@ -42,7 +42,7 @@ class Create extends Action
     public function handle()
     {
         if ($this->platform_name) {
-            $platform = Create::make(['name' => $this->platform_name]);
+            $platform = CreateLog::make(['name' => $this->platform_name]);
 
             // attach to asset_type_id
             $assetTypeId = Asset::findOrFail($this->asset_id)->asset_type->id;

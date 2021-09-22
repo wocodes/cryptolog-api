@@ -27,6 +27,11 @@ class AssetLog extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
 //    protected function serializeDate(DateTimeInterface $date)
 //    {
 //        return $date->format('Y-m-d H:i:s');
