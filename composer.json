@@ -17,7 +17,8 @@
         "laravel/telescope": "~3.5.1",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^2.4",
-        "lorisleiva/laravel-actions": "^1.2"
+        "lorisleiva/laravel-actions": "^1.2",
+        "sendpulse/rest-api": "^1.0"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

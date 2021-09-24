@@ -3,6 +3,8 @@
 namespace App\Actions\User\Auth;
 
 use App\Models\User;
+use App\Notifications\SendRegistrationNotification;
+use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Action;
 
 class Login extends Action
@@ -58,10 +60,13 @@ class Login extends Action
 
             return response()->json($response, 400);
         }
+
         $user->token = $user->createToken('user-token')->accessToken;
 
         $user = $user->only('id', 'name', 'email', 'token', 'is_admin');
         $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
+
+        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());
 
         return response()->json($response);
     }
