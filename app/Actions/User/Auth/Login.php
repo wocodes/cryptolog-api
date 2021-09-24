@@ -66,7 +66,7 @@ class Login extends Action
         $user = $user->only('id', 'name', 'email', 'token', 'is_admin');
         $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
 
-        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());
+//        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());
 
         return response()->json($response);
     }
