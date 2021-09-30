@@ -96,18 +96,38 @@ class UpdateAssetLogs extends Action
                 $query = AssetLog::query();
             }
 
-            $query->whereHas('asset', function($query) use($datum) {
+            $logs = $query->whereHas('asset', function($query) use($datum) {
                 $query->where('symbol', $datum["symbol"]);
-            })->update([
-                "current_value" => DB::raw("`quantity_bought` * {$datum['bidPrice']}"),
-                "profit_loss" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value`"),
-                "24_hr_change" => $datum['priceChangePercent'],
-                "roi" => (DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`")),
-                "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
-                "current_price" => $datum['bidPrice'],
-                "last_updated_at" => now(),
-                "profit_loss_naira" => DB::raw("`profit_loss` * 530")
-            ]);
+            })->where('is_sold', 0)->chunkById(100, function ($chunkedLogs) use ($datum) {
+                foreach ($chunkedLogs as $chunkedLog) {
+                    $qtyBought = $chunkedLog->quantity_bought;
+                    $bidPrice = $datum['bidPrice'];
+
+                    $chunkedLog->current_value = $qtyBought * $bidPrice;
+                    $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
+                    $chunkedLog->{'24_hr_change'} = $datum['priceChangePercent'];
+                    $chunkedLog->roi = $chunkedLog->profit_loss / $chunkedLog->initial_value;
+                    $chunkedLog->daily_roi = $chunkedLog->roi / 3;
+                    $chunkedLog->current_price = $datum['bidPrice'];
+                    $chunkedLog->last_updated_at = now();
+                    $chunkedLog->profit_loss_fiat = $chunkedLog->profit_loss * $chunkedLog->user->fiat->usdt_sell_rate ?? null;
+
+                    $chunkedLog->save();
+                }
+
+
+//                LEFT FOR REFERENCE PURPOSE
+//                update([
+//                    "current_value" => DB::raw("`quantity_bought` * {$datum['bidPrice']}"),
+//                    "profit_loss" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value`"),
+//                    "24_hr_change" => $datum['priceChangePercent'],
+//                    "roi" => (DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`")),
+//                    "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
+//                    "current_price" => $datum['bidPrice'],
+//                    "last_updated_at" => now(),
+//                    "profit_loss_naira" => DB::raw("`profit_loss` * 530")
+//                ]);
+            });
         }
     }
 }

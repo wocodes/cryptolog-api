@@ -16,9 +16,9 @@ class FiatSeeder extends Seeder
     public function run()
     {
         try {
-            $externalRates = Cache::get('external_fiats_data', function () {
-                Http::get('https://api.remitano.com/api/v1/rates/ads')->json();
-            });
+//            $externalRates = Cache::get('external_fiats_data', function () {
+            $externalRates = Http::get('https://api.remitano.com/api/v1/rates/ads')->json();
+//            });
 
             Fiat::create([
                 'name' => 'Naira',

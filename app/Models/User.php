@@ -55,4 +55,9 @@ class User extends Authenticatable
     {
         return (bool) $value;
     }
+
+    public function fiat()
+    {
+        return $this->belongsTo(Fiat::class);
+    }
 }
