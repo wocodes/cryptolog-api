@@ -61,9 +61,10 @@ class Login extends Action
             return response()->json($response, 400);
         }
 
+        $user = $user->load('fiat:id,country_code,symbol,usdt_sell_rate,usdt_buy_rate');
         $user->token = $user->createToken('user-token')->accessToken;
 
-        $user = $user->only('id', 'name', 'email', 'token', 'is_admin');
+        $user = $user->only('id', 'name', 'email', 'token', 'is_admin', 'finished_setup', 'fiat_id', 'fiat', 'has_api_keys');
         $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
 
 //        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());

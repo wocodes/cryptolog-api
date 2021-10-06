@@ -34,3 +34,4 @@ require 'apis/assets.php';
 
 require_once 'apis/logs.php';
 require_once 'apis/platforms.php';
+require_once 'apis/fiat.php';
