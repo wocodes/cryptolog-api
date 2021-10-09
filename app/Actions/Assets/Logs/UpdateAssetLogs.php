@@ -2,6 +2,7 @@
 
 namespace App\Actions\Assets\Logs;
 
+use App\Actions\Binance\GetAssets24hTicker;
 use App\Models\Asset;
 use App\Models\AssetLog;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,9 +14,7 @@ use Lorisleiva\Actions\Action;
 class UpdateAssetLogs extends Action
 {
     private Collection $logs;
-    private Collection $assets;
     private array $currentAssetData = [];
-    private $baseSymbol = "USDT";
 
     /**
      * Determine if the user is authorized to make this action.
@@ -44,45 +43,17 @@ class UpdateAssetLogs extends Action
      */
     public function handle()
     {
-        $this->assets = $this->getAssets();
-
         $this->logs = $this->getLogs();
 
-        $this->getCurrentAssetData();
+        $this->currentAssetData = GetAssets24hTicker::run();
 
         $this->updateLogs();
-    }
-
-
-    private function getAssets() : Collection
-    {
-        return Asset::all();
     }
 
 
     private function getLogs() : Collection
     {
         return AssetLog::all();
-    }
-
-
-    private function getCurrentAssetData() : void
-    {
-        foreach($this->assets as $asset) {
-            $assetSymbol = $asset->symbol;
-            $activeApi = $asset->assetType->activeApi;
-
-            $pair = "{$assetSymbol}{$this->baseSymbol}";
-            $url = $activeApi->host . "/ticker/24hr?symbol={$pair}";
-
-            $data = Http::retry(3)->get($url);
-
-            $assetData = $data->json();
-
-            Log::info("Fetching update for {$pair}", [$assetData]);
-
-            $this->currentAssetData[$assetSymbol] = array_merge($assetData, ["symbol" => $assetSymbol]);
-        }
     }
 
 

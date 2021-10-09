@@ -2,6 +2,7 @@
 
 namespace App\Actions\User;
 
+use App\Actions\Assets\Logs\ImportFromBinance;
 use App\Models\Platform;
 use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
@@ -46,6 +47,9 @@ class SaveApiKeys extends Action
 
         $this->user()->finished_setup = 1;
         $this->user()->save();
+
+        // now fetch data from binance!
+        ImportFromBinance::run();
     }
 
     public function jsonResponse()
