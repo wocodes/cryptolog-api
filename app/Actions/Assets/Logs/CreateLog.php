@@ -3,6 +3,7 @@
 namespace App\Actions\Assets\Logs;
 
 use App\Models\Asset;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
 class CreateLog extends Action
@@ -30,7 +31,7 @@ class CreateLog extends Action
             "asset_id" => "required|integer",
             "quantity_bought" => "required|string",
             "initial_value" => "required|string",
-            "date_of_purchase" => "required|date",
+            "date_of_purchase" => "nullable|date",
         ];
     }
 

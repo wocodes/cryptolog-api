@@ -3,6 +3,7 @@
 namespace App\Actions\User\Auth;
 
 use App\Models\User;
+use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
 
 class Register extends Action
@@ -26,7 +27,7 @@ class Register extends Action
     {
         return [
             "name" => "required|string",
-            "username" => "required|string",
+            "username" => "required|string|unique:users,email",
             "password" => "required|string|min:5"
         ];
     }
@@ -44,8 +45,8 @@ class Register extends Action
             'password' => bcrypt($this->password)
         ];
 
-        $user = User::create($data);
+        User::create($data);
 
-        return response()->json($user);
+        return JsonResponse::success([], "Successfully registered.");
     }
 }

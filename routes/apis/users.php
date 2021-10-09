@@ -10,5 +10,8 @@ Route::prefix("user")->group(function() {
         Route::get('/dashboard/stats', '\App\Actions\User\Dashboard\Stats');
         Route::get('/metas', '\App\Actions\User\Metas\Get');
         Route::post('/metas', '\App\Actions\User\Metas\Save');
+
+        Route::put('/', '\App\Actions\User\Update');
+        Route::post('/api-keys', '\App\Actions\User\SaveApiKeys');
     });
 });
