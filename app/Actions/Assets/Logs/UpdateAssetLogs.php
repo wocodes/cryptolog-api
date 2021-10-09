@@ -5,14 +5,18 @@ namespace App\Actions\Assets\Logs;
 use App\Actions\Binance\GetAssets24hTicker;
 use App\Models\Asset;
 use App\Models\AssetLog;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
-class UpdateAssetLogs extends Action
+class UpdateAssetLogs extends Action implements ShouldQueue
 {
+    use Queueable;
+
     private Collection $logs;
     private array $currentAssetData = [];
 

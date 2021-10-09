@@ -3,11 +3,14 @@
 namespace App\Actions\Assets\Logs;
 
 use App\Actions\Binance\GetAssets24hTicker;
+use App\Actions\User\Update;
 use App\Models\Asset;
 use App\Models\Platform;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
@@ -15,11 +18,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Action;
 
-class ImportFromBinance extends Action
+class ImportFromBinance extends Action implements ShouldQueue
 {
+    use Queueable;
+
     private int $binanceServerTimestamp;
     private array $currentLiveTickerData = [];
     private string $currentAsset;
+    private int $countImport = 0;
     private ?Authenticatable $user;
     private $userApiKeys;
     private const API_URL = "https://api.binance.com/api/v3";
@@ -77,14 +83,18 @@ class ImportFromBinance extends Action
 
         foreach ($assets as $asset) {
             $url = $this->buildUrl($asset);
+//            Log::info('url', [$url]);
 
             try {
                 $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
 
                 if ($this->selectedEndpoint === 'all_orders') {
+//                    Log::info('logging all orders');
                     $this->logByOrders($assets);
                 } else {
+//                    Log::info('logging all balances');
                     $this->logByAccountBalance($assets['balances']);
+                    $this->countImport++;
                 }
             } catch (RequestException $requestException) {
                 throw new \HttpRequestException($requestException->getMessage());
@@ -92,6 +102,8 @@ class ImportFromBinance extends Action
                 dd($throwable->getMessage());
             }
         }
+
+        return $this->countImport;
     }
 
     /**
@@ -148,7 +160,9 @@ class ImportFromBinance extends Action
     {
         $balance = array_filter($accountBalances, function ($accountBalance) {
            return $accountBalance['asset'] === $this->currentAsset;
-        })[0];
+        });
+
+        $balance = array_values($balance)[0];
 
         $totalBalanceQty = $balance['free'] + $balance['locked'];
         $currentAssetBidPrice = $this->currentLiveTickerData[$this->currentAsset]['bidPrice'];
@@ -156,12 +170,11 @@ class ImportFromBinance extends Action
         $data = [
             "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
             "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
-            "quantity_bought" => $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
-            "initial_value" => $totalBalanceQty * $currentAssetBidPrice,
+            "quantity_bought" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
+            "initial_value" => (string) ($totalBalanceQty * $currentAssetBidPrice),
         ];
 
-        $loggedPurchase = CreateLog::make($data);
-        Log::info("Logging balance gotten via API:", [$loggedPurchase]);
+        CreateLog::run($data);
     }
 
     private function purchase($asset)
@@ -174,8 +187,7 @@ class ImportFromBinance extends Action
             "date_of_purchase" => Carbon::make($asset['time'])->toDate(),
         ];
 
-        $loggedPurchase = CreateLog::make($data);
-        Log::info("Logged Purchase Via API", [$loggedPurchase]);
+        CreateLog::make($data);
     }
 
 
@@ -192,8 +204,7 @@ class ImportFromBinance extends Action
             'date' => Carbon::make($asset['time'])->toDate(),
         ];
 
-        $loggedPurchase = CreateWithdrawal::make($data);
-        Log::info("Logged Withdrawal Via API", [$loggedPurchase]);
+        CreateWithdrawal::make($data);
     }
 
 

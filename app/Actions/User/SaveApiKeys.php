@@ -3,11 +3,15 @@
 namespace App\Actions\User;
 
 use App\Actions\Assets\Logs\ImportFromBinance;
+use App\Actions\Assets\Logs\UpdateAssetLogs;
+use App\Events\ApiKeysSaved;
 use App\Models\Platform;
 use App\Traits\JsonResponse;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
-class SaveApiKeys extends Action
+class SaveApiKeys extends Action implements ShouldQueue
 {
     /**
      * Determine if the user is authorized to make this action.
@@ -50,6 +54,11 @@ class SaveApiKeys extends Action
 
         // now fetch data from binance!
         ImportFromBinance::run();
+
+        // update the logs
+        UpdateAssetLogs::run();
+
+        return true;
     }
 
     public function jsonResponse()
