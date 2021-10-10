@@ -3,22 +3,32 @@
 namespace App\Actions\Assets\Logs;
 
 use App\Actions\Binance\GetAssets24hTicker;
+use App\Actions\User\Update;
 use App\Models\Asset;
-use App\Models\AssetLog;
+use App\Models\Platform;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Action;
 
 class UpdateAssetLogs extends Action implements ShouldQueue
 {
     use Queueable;
 
-    private Collection $logs;
-    private array $currentAssetData = [];
+    private string $currentAsset;
+    private int $countImport = 0;
+    private ?Authenticatable $user;
+    private $userApiKeys;
+    private const API_URL = "https://api.binance.com/api/v3";
+
+    protected static $commandSignature = 'import';
 
     /**
      * Determine if the user is authorized to make this action.
@@ -31,7 +41,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
     }
 
     /**
-     * ListPlatforms the validation rules that apply to the action.
+     * Get the validation rules that apply to the action.
      *
      * @return array
      */
@@ -47,62 +57,103 @@ class UpdateAssetLogs extends Action implements ShouldQueue
      */
     public function handle()
     {
-        $this->logs = $this->getLogs();
+        $this->user = $this->user();
+        $this->userApiKeys = $this->user->apiKeys()->first();
 
-        $this->currentAssetData = GetAssets24hTicker::run();
+        $assets = Asset::all();
 
-        $this->updateLogs();
-    }
+        foreach ($assets as $asset) {
+            $url = $this->buildUrl($asset);
 
+            try {
+                $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
 
-    private function getLogs() : Collection
-    {
-        return AssetLog::all();
-    }
-
-
-    private function updateLogs()
-    {
-        foreach($this->currentAssetData as $datum)
-        {
-            if($this->user()) {
-                $query = $this->user()->assetLogs();
-            } else {
-                $query = AssetLog::query();
+                $this->logByOrders($assets);
+            } catch (RequestException $requestException) {
+                throw new \HttpRequestException($requestException->getMessage());
+            } catch (\Throwable $throwable) {
+                dd($throwable->getMessage());
             }
-
-            $logs = $query->whereHas('asset', function($query) use($datum) {
-                $query->where('symbol', $datum["symbol"]);
-            })->where('is_sold', 0)->chunkById(100, function ($chunkedLogs) use ($datum) {
-                foreach ($chunkedLogs as $chunkedLog) {
-                    $qtyBought = $chunkedLog->quantity_bought;
-                    $bidPrice = $datum['bidPrice'];
-
-                    $chunkedLog->current_value = $qtyBought * $bidPrice;
-                    $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
-                    $chunkedLog->{'24_hr_change'} = $datum['priceChangePercent'];
-                    $chunkedLog->roi = $chunkedLog->profit_loss / $chunkedLog->initial_value;
-                    $chunkedLog->daily_roi = $chunkedLog->roi / 3;
-                    $chunkedLog->current_price = $datum['bidPrice'];
-                    $chunkedLog->last_updated_at = now();
-                    $chunkedLog->profit_loss_fiat = $chunkedLog->profit_loss * $chunkedLog->user->fiat->usdt_sell_rate ?? null;
-
-                    $chunkedLog->save();
-                }
-
-
-//                LEFT FOR REFERENCE PURPOSE
-//                update([
-//                    "current_value" => DB::raw("`quantity_bought` * {$datum['bidPrice']}"),
-//                    "profit_loss" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value`"),
-//                    "24_hr_change" => $datum['priceChangePercent'],
-//                    "roi" => (DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`")),
-//                    "daily_roi" => DB::raw("`quantity_bought` * {$datum['bidPrice']} - `initial_value` / `initial_value`  / 3"),
-//                    "current_price" => $datum['bidPrice'],
-//                    "last_updated_at" => now(),
-//                    "profit_loss_naira" => DB::raw("`profit_loss` * 530")
-//                ]);
-            });
         }
+
+        // update fetched_remote_balances_at column
+        $this->user()->fetched_remote_orders_at = now();
+        $this->user()->save();
+
+        return $this->countImport;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function asCommand()
+    {
+        $this->handle();
+    }
+
+
+    private function logByOrders(array $assets)
+    {
+        foreach ($assets as $asset) {
+            if ($asset['side'] == "BUY") {
+                $this->purchase($asset);
+            } elseif ($asset['side'] == "SELL") {
+                $this->withdrawal($asset);
+            } else {
+                Log::info("Auto Log isn't a BUY or SELL");
+            }
+        }
+    }
+
+    private function purchase($asset)
+    {
+        $data = [
+            "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
+            "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
+            "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
+            "initial_value" => $asset['price'] * $asset['origQty'],
+            "date_of_purchase" => Carbon::make($asset['time'])->toDate(),
+        ];
+
+        CreateLog::make($data);
+    }
+
+
+    private function withdrawal($asset)
+    {
+        $getWithrawableLog = $this->user->assetLogs()->whereHas('asset', function ($query) {
+            $query->whereName($this->currentAsset);
+        })->where('quantity_bought', '>', $asset['origQty'])
+            ->orderBy('profit_loss', 'DESC')->first();
+
+        $data = [
+            'log_id' => $getWithrawableLog->id,
+            'value' => $asset['price'] * $asset['origQty'],
+            'quantity' => $asset['origQty'],
+            'date' => Carbon::make($asset['time'])->toDate(),
+        ];
+
+        CreateWithdrawal::make($data);
+    }
+
+
+    private function buildUrl($asset)
+    {
+        $this->currentAsset = $asset->symbol;
+        $symbolPairs = "{$this->currentAsset}USDT";
+        $lastUpdate = $this->user()->fetched_remote_orders_at ?? $this->user()->fetched_remote_balance_at;
+        $timestamp = Carbon::parse($lastUpdate)->getTimestampMs();
+
+        $url = static::API_URL . "/all_orders";
+
+        $queryString = "timestamp=$timestamp";
+        $queryString .= "&startTime=$timestamp";
+        $queryString .= "&symbol=$symbolPairs";
+        $queryString .= "&limit=500";
+
+        $signature = hash_hmac("sha256", $queryString, $this->userApiKeys->secret);
+        $url .= "?$queryString&signature=$signature";
+
+        return $url;
     }
 }

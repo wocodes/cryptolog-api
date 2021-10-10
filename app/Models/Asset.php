@@ -23,4 +23,9 @@ class Asset extends Model
     {
         return $this->belongsToMany(Platform::class);
     }
+
+    public function logs()
+    {
+        return $this->hasMany(AssetLog::class);
+    }
 }

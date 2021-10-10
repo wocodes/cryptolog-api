@@ -53,7 +53,7 @@ class CreateWithdrawal extends Action
         $log->save();
 
         // update all logs => correct version should be to update the specific log affected by this
-        UpdateAssetLogs::run();
+        UpdateAssetValue::run();
 
         return $withdrawal;
     }

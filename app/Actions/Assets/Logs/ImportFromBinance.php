@@ -23,7 +23,6 @@ class ImportFromBinance extends Action implements ShouldQueue
     use Queueable;
 
     private int $binanceServerTimestamp;
-    private array $currentLiveTickerData = [];
     private string $currentAsset;
     private int $countImport = 0;
     private ?Authenticatable $user;
@@ -74,46 +73,45 @@ class ImportFromBinance extends Action implements ShouldQueue
      */
     public function handle()
     {
-        $this->currentLiveTickerData = GetAssets24hTicker::run();
-        $this->getBinanceServerTimestamp();
+        Log::info("Importing Balance from Binance");
         $this->user = $this->user();
         $this->userApiKeys = $this->user->apiKeys()->first();
 
-        $assets = Asset::all();
+        try {
+            $url = $this->buildUrl();
+            Log::info("Fetching balances... $url");
 
-        foreach ($assets as $asset) {
-            $url = $this->buildUrl($asset);
-//            Log::info('url', [$url]);
+            $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->retry(3)->get($url)->json();
 
-            try {
-                $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
+            $this->logByAccountBalance($assets['balances']);
+            $this->countImport++;
+        } catch (RequestException $requestException) {
+            Log::error("An error occurred.", [$requestException->response]);
+            Log::error("Code", [$requestException->response['code']]);
+            Log::error("Message", [$requestException->response['msg']]);
 
-                if ($this->selectedEndpoint === 'all_orders') {
-//                    Log::info('logging all orders');
-                    $this->logByOrders($assets);
-                } else {
-//                    Log::info('logging all balances');
-                    $this->logByAccountBalance($assets['balances']);
-                    $this->countImport++;
-                }
-            } catch (RequestException $requestException) {
-                throw new \HttpRequestException($requestException->getMessage());
-            } catch (\Throwable $throwable) {
-                dd($throwable->getMessage());
+            if ($requestException->response['code'] == -1021) {
+                throw new \ErrorException("No new updates at this time. Try again later.");
+            } else {
+                throw new \Exception("An error occurred");
+//                throw new \Exception($requestException->response['msg']);
             }
+
+        } catch (\Throwable $throwable) {
+            dd($throwable->getMessage());
         }
 
+        // update fetched_remote_balances_at column
+        $this->user()->fetched_remote_balance_at = now();
+        $this->user()->save();
+
+        Log::info("Finished importing balance from Binance");
         return $this->countImport;
     }
 
     /**
      * NOTE: Observations!
-     * 1. From findings, it was noticed that Binance requires usage of their current server time (ms timestamp) in order to
-     * get orders via the query string, and this server time, when parsed via Carbon to get human date, returns a date in year 2000.
-     * This seems to be incorrect somehow. Also, I observed that the most recent orders matches the most recent orders on the platform
-     * BUT when the date of the transaction is parsed through Carbon, it returns a date in year 2000-2009 or so.
-     *
-     * 2. The initial plan was to get ALL the users past orders since they started using the platform, but Binance only allows fetching
+     * 1. The initial plan was to get ALL the users past orders since they started using the platform, but Binance only allows fetching
      * data from the past 3 months which is a bummer! :-( Therefore an alternative approach is to get the user's wallet balance of each
      * crypto instead. Not cool enough though, but it's a good start anyway.
      *
@@ -124,22 +122,22 @@ class ImportFromBinance extends Action implements ShouldQueue
         $this->handle();
     }
 
-    /**
-     * @throws \HttpRequestException
-     * @throws \Exception
-     */
-    private function getBinanceServerTimestamp()
-    {
-        try {
-            // get current server time
-            $response = Http::get(static::API_URL . "/time")->json();
-            $this->binanceServerTimestamp = $response['serverTime'];
-        } catch (RequestException $requestException) {
-            throw new \HttpRequestException($requestException->getMessage());
-        } catch (\Throwable $throwable) {
-            throw new \ErrorException($throwable->getMessage());
-        }
-    }
+//    /**
+//     * @throws \HttpRequestException
+//     * @throws \Exception
+//     */
+//    private function getBinanceServerTimestamp()
+//    {
+//        try {
+//            // get current server time
+//            $response = Http::get(static::API_URL . "/time")->json();
+//            $this->binanceServerTimestamp = $response['serverTime'];
+//        } catch (RequestException $requestException) {
+//            throw new \HttpRequestException($requestException->getMessage());
+//        } catch (\Throwable $throwable) {
+//            throw new \ErrorException($throwable->getMessage());
+//        }
+//    }
 
     private function logByOrders(array $assets)
     {
@@ -158,65 +156,75 @@ class ImportFromBinance extends Action implements ShouldQueue
 
     private function logByAccountBalance(array $accountBalances)
     {
-        $balance = array_filter($accountBalances, function ($accountBalance) {
-           return $accountBalance['asset'] === $this->currentAsset;
-        });
+        foreach ($accountBalances as $accountBalance) {
+            // check if asset is saved in Binance LenDing (i.e Savings)
+            // if so, strip the LD prefix from the asset.
+            if (substr($accountBalance['asset'], 0, 2) === 'LD') {
+                $accountBalance['asset'] = ltrim($accountBalance['asset'], 'LD');
+            }
 
-        $balance = array_values($balance)[0];
+            $userHasAsset = $this->user()->assetLogs()->whereHas('asset', function ($query) use ($accountBalance) {
+                $query->where('symbol', $accountBalance['asset']);
+            })->exists();
 
-        $totalBalanceQty = $balance['free'] + $balance['locked'];
-        $currentAssetBidPrice = $this->currentLiveTickerData[$this->currentAsset]['bidPrice'];
+            if ($userHasAsset) {
+                Log::info("Asset ({$accountBalance['asset']}) already exists!");
+            } else {
+                $totalBalanceQty = $accountBalance['free'] + $accountBalance['locked'];
+                if ($totalBalanceQty > 0) {
+                    $data = [
+                        "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
+                        "asset_id" => Asset::where('symbol', $accountBalance['asset'])->firstOrFail()->id,
+                        "quantity_bought" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
+                        "initial_value" => "0",
+                    ];
 
-        $data = [
-            "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
-            "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
-            "quantity_bought" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
-            "initial_value" => (string) ($totalBalanceQty * $currentAssetBidPrice),
-        ];
+                    Log::info('asset data', $data);
 
-        CreateLog::run($data);
+                    CreateLog::run($data);
+                }
+            }
+        }
     }
 
-    private function purchase($asset)
+//    private function purchase($asset)
+//    {
+//        $data = [
+//            "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
+//            "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
+//            "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
+//            "initial_value" => $asset['price'] * $asset['origQty'],
+//            "date_of_purchase" => Carbon::make($asset['time'])->toDate(),
+//        ];
+//
+//        CreateLog::make($data);
+//    }
+//
+//
+//    private function withdrawal($asset)
+//    {
+//        $getWithrawableLog = $this->user->assetLogs()->whereHas('asset', function ($query) {
+//                $query->whereName($this->currentAsset);
+//            })->where('quantity_bought', '>', $asset['origQty'])->first();
+//
+//        $data = [
+//            'log_id' => $getWithrawableLog->id,
+//            'value' => $asset['price'] * $asset['origQty'],
+//            'quantity' => $asset['origQty'],
+//            'date' => Carbon::make($asset['time'])->toDate(),
+//        ];
+//
+//        CreateWithdrawal::make($data);
+//    }
+
+
+    private function buildUrl($asset = null)
     {
-        $data = [
-            "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
-            "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
-            "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
-            "initial_value" => $asset['price'] * $asset['origQty'],
-            "date_of_purchase" => Carbon::make($asset['time'])->toDate(),
-        ];
-
-        CreateLog::make($data);
-    }
-
-
-    private function withdrawal($asset)
-    {
-        $getWithrawableLog = $this->user->assetLogs()->whereHas('asset', function ($query) {
-                $query->whereName($this->currentAsset);
-            })->where('quantity_bought', '>', $asset['origQty'])->first();
-
-        $data = [
-            'log_id' => $getWithrawableLog->id,
-            'value' => $asset['price'] * $asset['origQty'],
-            'quantity' => $asset['origQty'],
-            'date' => Carbon::make($asset['time'])->toDate(),
-        ];
-
-        CreateWithdrawal::make($data);
-    }
-
-
-    private function buildUrl($asset)
-    {
-        $this->currentAsset = $asset->symbol;
-        $symbolPairs = "{$this->currentAsset}USDT";
-        $timestamp = $this->binanceServerTimestamp;
+        $lastUpdate = $this->user()->fetched_remote_balance_at ?? now();
+        $timestamp = Carbon::parse($lastUpdate)->getTimestampMs();
 
         $url = static::API_URL . $this->selectedEndpoint['path'];
 
-        Log::info("Binance Current Server Time/Date", [Carbon::createFromTimestamp($timestamp)->toDateString()]);
         $queryString = "timestamp=$timestamp";
         if (count($this->selectedEndpoint['params'])) {
             foreach ($this->selectedEndpoint['params'] as $key => $value) {
