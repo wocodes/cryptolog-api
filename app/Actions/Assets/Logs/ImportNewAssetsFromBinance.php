@@ -91,7 +91,7 @@ class ImportFromBinance extends Action implements ShouldQueue
             Log::error("Message", [$requestException->response['msg']]);
 
             if ($requestException->response['code'] == -1021) {
-                throw new \ErrorException("No new updates at this time. Try again later.");
+                throw new \Exception("No new updates at this time. Try again later.", 400);
             } else {
                 throw new \Exception("An error occurred");
 //                throw new \Exception($requestException->response['msg']);
