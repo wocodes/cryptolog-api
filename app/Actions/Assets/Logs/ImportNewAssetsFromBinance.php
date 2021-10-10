@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Action;
 
-class ImportFromBinance extends Action implements ShouldQueue
+class ImportNewAssetsFromBinance extends Action implements ShouldQueue
 {
     use Queueable;
 

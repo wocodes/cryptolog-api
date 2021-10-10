@@ -2,7 +2,7 @@
 
 namespace App\Actions\User;
 
-use App\Actions\Assets\Logs\ImportFromBinance;
+use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
 use App\Actions\Assets\Logs\UpdateAssetValue;
 use App\Events\ApiKeysSaved;
 use App\Models\Platform;
@@ -53,7 +53,7 @@ class SaveApiKeys extends Action implements ShouldQueue
         $this->user()->save();
 
         // now fetch data from binance!
-        ImportFromBinance::run();
+        ImportNewAssetsFromBinance::run();
 
         // update the logs
         UpdateAssetValue::run();
