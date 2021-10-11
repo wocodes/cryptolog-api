@@ -22,6 +22,8 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
 {
     use Queueable;
 
+    protected static $commandSignature = 'import:binance-logs {--user_id=}';
+
     private int $binanceServerTimestamp;
     private string $currentAsset;
     private int $countImport = 0;
@@ -44,8 +46,6 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
 
     private $selectedEndpoint = self::ENDPOINTS['account'];
 
-    protected static $commandSignature = 'import';
-
     /**
      * Determine if the user is authorized to make this action.
      *
@@ -63,7 +63,9 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
      */
     public function rules()
     {
-        return [];
+        return [
+            "user_id" => "nullable|integer"
+        ];
     }
 
     /**
@@ -73,9 +75,19 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
      */
     public function handle()
     {
-        Log::info("Importing Balance from Binance");
         $this->user = $this->user();
+
+        if (!$this->user && $this->user_id) {
+            $this->user = User::findOrFail($this->user_id);
+        }
+
+        Log::info("Importing Balance from Binance for User {$this->user->id}");
+
         $this->userApiKeys = $this->user->apiKeys()->first();
+        if (!$this->userApiKeys) {
+            Log::info("User has no api keys set. Can't import");
+            return false;
+        }
 
         try {
             $url = $this->buildUrl();
@@ -102,8 +114,8 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
         }
 
         // update fetched_remote_balances_at column
-        $this->user()->fetched_remote_balance_at = now();
-        $this->user()->save();
+        $this->user->fetched_remote_balance_at = now();
+        $this->user->save();
 
         Log::info("Finished importing balance from Binance");
         return $this->countImport;
@@ -222,7 +234,7 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
     {
         $this->getBinanceServerTimestamp();
 
-        $timestamp = Carbon::parse(now())->getTimestampMs();
+        $timestamp = now()->getTimestampMs();
         $humanTime = Carbon::createFromTimestampMs($timestamp)->toDateTimeString();
         $bHumanTime = Carbon::createFromTimestampMs($this->binanceServerTimestamp)->toDateTimeString();
 

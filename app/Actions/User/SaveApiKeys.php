@@ -55,9 +55,6 @@ class SaveApiKeys extends Action implements ShouldQueue
         // now fetch data from binance!
         ImportNewAssetsFromBinance::run();
 
-        // update the logs
-        UpdateAssetValue::run();
-
         return true;
     }
 

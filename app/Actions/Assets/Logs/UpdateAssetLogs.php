@@ -5,6 +5,7 @@ namespace App\Actions\Assets\Logs;
 use App\Actions\Binance\GetAssets24hTicker;
 use App\Actions\User\Update;
 use App\Models\Asset;
+use App\Models\AssetLog;
 use App\Models\Platform;
 use App\Models\User;
 use Carbon\Carbon;
@@ -22,13 +23,14 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 {
     use Queueable;
 
+    private int $binanceServerTimestamp;
     private string $currentAsset;
     private int $countImport = 0;
     private ?Authenticatable $user;
     private $userApiKeys;
     private const API_URL = "https://api.binance.com/api/v3";
 
-    protected static $commandSignature = 'import';
+    protected static $commandSignature = 'update:logs {--user_id=}';
 
     /**
      * Determine if the user is authorized to make this action.
@@ -47,7 +49,9 @@ class UpdateAssetLogs extends Action implements ShouldQueue
      */
     public function rules()
     {
-        return [];
+        return [
+            "user_id" => "nullable|integer"
+        ];
     }
 
     /**
@@ -58,27 +62,50 @@ class UpdateAssetLogs extends Action implements ShouldQueue
     public function handle()
     {
         $this->user = $this->user();
-        $this->userApiKeys = $this->user->apiKeys()->first();
 
-        $assets = Asset::all();
+        if (!$this->user && $this->user_id) {
+            $this->user = User::findOrFail($this->user_id);
+        }
+
+        Log::info("Updating Existing Logs (sell/buy) for User {$this->user->id}");
+
+        $user = $this->user;
+
+        $this->userApiKeys = $this->user->apiKeys()->first();
+        if (!$this->userApiKeys) {
+            Log::info("User has no api keys set. Can't get orders");
+            return false;
+        }
+
+        $assets = Asset::whereHas("logs", function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get()->pluck('symbol')->toArray();
+
+        Log::info("User Assets", [$assets]);
 
         foreach ($assets as $asset) {
             $url = $this->buildUrl($asset);
 
             try {
-                $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
+                $orders = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
+                Log::info("The asset", [$this->currentAsset]);
+                // {"code":-1121,"msg":"Invalid symbol."}
 
-                $this->logByOrders($assets);
+//                if ($orders->code != -1121 && count($orders)) {
+                if (count($orders)) {
+                    $this->logByOrders($orders);
+                }
             } catch (RequestException $requestException) {
+
                 throw new \HttpRequestException($requestException->getMessage());
             } catch (\Throwable $throwable) {
-                dd($throwable->getMessage());
+                dd($throwable->getTrace());
             }
         }
 
         // update fetched_remote_balances_at column
-        $this->user()->fetched_remote_orders_at = now();
-        $this->user()->save();
+        $this->user->fetched_remote_orders_at = now();
+        $this->user->save();
 
         return $this->countImport;
     }
@@ -92,13 +119,15 @@ class UpdateAssetLogs extends Action implements ShouldQueue
     }
 
 
-    private function logByOrders(array $assets)
+    private function logByOrders(array $orders)
     {
-        foreach ($assets as $asset) {
-            if ($asset['side'] == "BUY") {
-                $this->purchase($asset);
-            } elseif ($asset['side'] == "SELL") {
-                $this->withdrawal($asset);
+        Log::info('the orders', $orders);
+        foreach ($orders as $order) {
+            Log::info('the order', $order);
+            if ($order['side'] === "BUY") {
+                $this->purchase($order);
+            } elseif ($order['side'] === "SELL") {
+                $this->withdrawal($order);
             } else {
                 Log::info("Auto Log isn't a BUY or SELL");
             }
@@ -107,20 +136,27 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 
     private function purchase($asset)
     {
+        Log::info("purchased asset", [$asset]);
+
         $data = [
             "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
             "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
             "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
             "initial_value" => $asset['price'] * $asset['origQty'],
-            "date_of_purchase" => Carbon::make($asset['time'])->toDate(),
+            "date_of_purchase" => Carbon::parse($asset['time'])->toDate(),
         ];
 
-        CreateLog::make($data);
+        CreateLog::run($data);
+
+        $this->user->fetched_remote_orders_at = now();
+        $this->user->save();
     }
 
 
     private function withdrawal($asset)
     {
+        Log::info("withdrawn asset", [$asset]);
+
         $getWithrawableLog = $this->user->assetLogs()->whereHas('asset', function ($query) {
             $query->whereName($this->currentAsset);
         })->where('quantity_bought', '>', $asset['origQty'])
@@ -130,24 +166,48 @@ class UpdateAssetLogs extends Action implements ShouldQueue
             'log_id' => $getWithrawableLog->id,
             'value' => $asset['price'] * $asset['origQty'],
             'quantity' => $asset['origQty'],
-            'date' => Carbon::make($asset['time'])->toDate(),
+            'date' => Carbon::parse($asset['time'])->toDate(),
         ];
 
-        CreateWithdrawal::make($data);
+        CreateWithdrawal::run($data);
+
+        $this->user->fetched_remote_orders_at = now();
+        $this->user->save();
     }
 
+    private function getBinanceServerTimestamp()
+    {
+        try {
+            // get current server time
+            $response = Http::get(static::API_URL . "/time")->json();
+            $this->binanceServerTimestamp = $response['serverTime'];
+        } catch (RequestException $requestException) {
+            throw new \HttpRequestException($requestException->getMessage());
+        } catch (\Throwable $throwable) {
+            throw new \ErrorException($throwable->getMessage());
+        }
+    }
 
     private function buildUrl($asset)
     {
-        $this->currentAsset = $asset->symbol;
-        $symbolPairs = "{$this->currentAsset}USDT";
-        $lastUpdate = $this->user()->fetched_remote_orders_at ?? $this->user()->fetched_remote_balance_at;
-        $timestamp = Carbon::parse($lastUpdate)->getTimestampMs();
+        $this->getBinanceServerTimestamp();
 
-        $url = static::API_URL . "/all_orders";
+        $timestamp = now()->getTimestampMs();
+        $humanTime = Carbon::createFromTimestampMs($timestamp)->toDateTimeString();
+        $bHumanTime = Carbon::createFromTimestampMs($this->binanceServerTimestamp)->toDateTimeString();
+
+        Log::info("My Server Time: $timestamp: $humanTime");
+        Log::info("Binance Server Time: $this->binanceServerTimestamp: $bHumanTime");
+
+        $this->currentAsset = $asset;
+        $symbolPairs = "{$this->currentAsset}USDT";
+        $lastUpdate = $this->user->fetched_remote_orders_at ?? $this->user->fetched_remote_balance_at;
+        $lastUpdateTimestamp = Carbon::parse($lastUpdate)->getTimestampMs();
+
+        $url = static::API_URL . "/allOrders";
 
         $queryString = "timestamp=$timestamp";
-        $queryString .= "&startTime=$timestamp";
+        $queryString .= "&startTime=$lastUpdateTimestamp";
         $queryString .= "&symbol=$symbolPairs";
         $queryString .= "&limit=500";
 
