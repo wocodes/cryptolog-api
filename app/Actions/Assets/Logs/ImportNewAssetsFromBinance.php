@@ -126,18 +126,18 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
 //     * @throws \HttpRequestException
 //     * @throws \Exception
 //     */
-//    private function getBinanceServerTimestamp()
-//    {
-//        try {
-//            // get current server time
-//            $response = Http::get(static::API_URL . "/time")->json();
-//            $this->binanceServerTimestamp = $response['serverTime'];
-//        } catch (RequestException $requestException) {
-//            throw new \HttpRequestException($requestException->getMessage());
-//        } catch (\Throwable $throwable) {
-//            throw new \ErrorException($throwable->getMessage());
-//        }
-//    }
+    private function getBinanceServerTimestamp()
+    {
+        try {
+            // get current server time
+            $response = Http::get(static::API_URL . "/time")->json();
+            $this->binanceServerTimestamp = $response['serverTime'];
+        } catch (RequestException $requestException) {
+            throw new \HttpRequestException($requestException->getMessage());
+        } catch (\Throwable $throwable) {
+            throw new \ErrorException($throwable->getMessage());
+        }
+    }
 
     private function logByOrders(array $assets)
     {
@@ -218,28 +218,20 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
 //    }
 
 
-    private function buildUrl($asset = null)
+    private function buildUrl()
     {
-        $lastUpdate = $this->user()->fetched_remote_balance_at ?? now();
-        $timestamp = Carbon::parse($lastUpdate)->getTimestampMs();
+        $this->getBinanceServerTimestamp();
+
+        $timestamp = Carbon::parse(now())->getTimestampMs();
+        $humanTime = Carbon::createFromTimestampMs($timestamp)->toDateTimeString();
+        $bHumanTime = Carbon::createFromTimestampMs($this->binanceServerTimestamp)->toDateTimeString();
+
+        Log::info("My Server Time: $timestamp: $humanTime");
+        Log::info("Binance Server Time: $this->binanceServerTimestamp: $bHumanTime");
 
         $url = static::API_URL . $this->selectedEndpoint['path'];
 
         $queryString = "timestamp=$timestamp";
-        if (count($this->selectedEndpoint['params'])) {
-            foreach ($this->selectedEndpoint['params'] as $key => $value) {
-                if ($value === "required") {
-                    if ($key === "symbol") {
-                        $queryString .= "&$key=$symbolPairs";
-                    }
-
-                    if ($key === "limit") {
-                        $queryString .= "&$key=500";
-                    }
-                }
-            }
-        }
-
         $signature = hash_hmac("sha256", $queryString, $this->userApiKeys->secret);
         $url .= "?$queryString&signature=$signature";
 
