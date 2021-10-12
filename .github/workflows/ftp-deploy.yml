@@ -1,44 +1,44 @@
-name: Build and Deploy via FTP
-on:
-  pull_request:
-    branches: [ staging ]
-    types: [ closed ]
+# name: Build and Deploy via FTP
+# on:
+#   pull_request:
+#     branches: [ staging ]
+#     types: [ closed ]
 
-jobs:
-  build:
-    name: Build and Deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
+# jobs:
+#   build:
+#     name: Build and Deploy
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: 🚚 Get latest code
+#         uses: actions/checkout@v2
         
-      - name: Setup Enviroment
-        uses: shivammathur/setup-php@v2
-        with:
-            php-version: '7.4'
+#       - name: Setup Enviroment
+#         uses: shivammathur/setup-php@v2
+#         with:
+#             php-version: '7.4'
             
-#      - name: Speed up the packages installation process
-#       run: composer global require hirak/prestissimo
+# #      - name: Speed up the packages installation process
+# #       run: composer global require hirak/prestissimo
         
-      - name: Install Packages
-        run: |
-          composer self-update
-          composer install
+#       - name: Install Packages
+#         run: |
+#           composer self-update
+#           composer install
         
-#      - name: Deploy to Server
-#        uses: kosratdev/laravel-deploy-migrate@laravel
+# #      - name: Deploy to Server
+# #        uses: kosratdev/laravel-deploy-migrate@laravel
 
-#      - name: Deploy to Server
-#        run: |
-#          php artisan migrate
-#          php artisan cache:clear
-#          php artisan config:clear
+# #      - name: Deploy to Server
+# #        run: |
+# #          php artisan migrate
+# #          php artisan cache:clear
+# #          php artisan config:clear
         
-      - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.1.0
-        with:
-          server: 156.67.74.201
-          username: u300464533
-          password: ${{ secrets.DEPLOY_FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: /home/u300464533/domains/assetlog.xyz/public_html/api
+#       - name: 📂 Sync files
+#         uses: SamKirkland/FTP-Deploy-Action@4.1.0
+#         with:
+#           server: 156.67.74.201
+#           username: u300464533
+#           password: ${{ secrets.DEPLOY_FTP_PASSWORD }}
+#           local-dir: ./
+#           server-dir: /home/u300464533/domains/assetlog.xyz/public_html/api
