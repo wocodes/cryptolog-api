@@ -23,12 +23,12 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 {
     use Queueable;
 
-    private int $binanceServerTimestamp;
+//    private int $binanceServerTimestamp;
     private string $currentAsset;
     private int $countImport = 0;
     private ?Authenticatable $user;
     private $userApiKeys;
-    private const API_URL = "https://api.binance.com/api/v3";
+    private const API_URL = "https://api2.binance.com/api/v3";
 
     protected static $commandSignature = 'update:logs {--user_id=}';
 
@@ -58,6 +58,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
      * Execute the action and return a result.
      *
      * @return mixed
+     * @throws \Exception
      */
     public function handle()
     {
@@ -84,22 +85,32 @@ class UpdateAssetLogs extends Action implements ShouldQueue
         Log::info("User Assets", [$assets]);
 
         foreach ($assets as $asset) {
+            Log::info(" ");
             $url = $this->buildUrl($asset);
+            Log::info("The url", [$url]);
 
             try {
-                $orders = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->get($url)->json();
+                $orders = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->retry(3)->get($url)->json();
                 Log::info("The asset", [$this->currentAsset]);
+                Log::info("The response", [$orders]);
                 // {"code":-1121,"msg":"Invalid symbol."}
 
-//                if ($orders->code != -1121 && count($orders)) {
-                if (count($orders)) {
+                if (!empty($orders['code']) && $orders['code'] == -1121) {
+                    Log::info($orders['msg']);
+                } elseif (count($orders)) {
                     $this->logByOrders($orders);
+                } else {
+                    Log::info('No recent orders');
                 }
             } catch (RequestException $requestException) {
+                Log::error($requestException->response);
+                Log::error($requestException->getCode());
+                Log::error($requestException->getMessage());
 
-                throw new \HttpRequestException($requestException->getMessage());
+//                throw new \Exception($requestException->getMessage());
             } catch (\Throwable $throwable) {
-                dd($throwable->getTrace());
+                Log::error($throwable->getMessage());
+//                throw new \Exception($throwable->getMessage());
             }
         }
 
@@ -115,9 +126,8 @@ class UpdateAssetLogs extends Action implements ShouldQueue
      */
     public function asCommand()
     {
-        $this->handle();
-    }
 
+    }
 
     private function logByOrders(array $orders)
     {
@@ -137,13 +147,15 @@ class UpdateAssetLogs extends Action implements ShouldQueue
     private function purchase($asset)
     {
         Log::info("purchased asset", [$asset]);
+        $initialValue = $asset['price'] * $asset['origQty'];
 
         $data = [
             "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
             "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
             "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
-            "initial_value" => $asset['price'] * $asset['origQty'],
+            "initial_value" => (string) $initialValue,
             "date_of_purchase" => Carbon::parse($asset['time'])->toDate(),
+            "user_id" => $this->user->id,
         ];
 
         CreateLog::run($data);
@@ -175,29 +187,30 @@ class UpdateAssetLogs extends Action implements ShouldQueue
         $this->user->save();
     }
 
-    private function getBinanceServerTimestamp()
-    {
-        try {
-            // get current server time
-            $response = Http::get(static::API_URL . "/time")->json();
-            $this->binanceServerTimestamp = $response['serverTime'];
-        } catch (RequestException $requestException) {
-            throw new \HttpRequestException($requestException->getMessage());
-        } catch (\Throwable $throwable) {
-            throw new \ErrorException($throwable->getMessage());
-        }
-    }
+//    private function getBinanceServerTimestamp()
+//    {
+//        try {
+//            // get current server time
+//            $response = Http::get(static::API_URL . "/time")->json();
+//            $this->binanceServerTimestamp = $response['serverTime'];
+//        } catch (RequestException $requestException) {
+//            throw new \HttpRequestException($requestException->getMessage());
+//        } catch (\Throwable $throwable) {
+//            throw new \ErrorException($throwable->getMessage());
+//        }
+//    }
 
     private function buildUrl($asset)
     {
-        $this->getBinanceServerTimestamp();
+//        $this->getBinanceServerTimestamp();
 
-        $timestamp = now()->getTimestampMs();
-        $humanTime = Carbon::createFromTimestampMs($timestamp)->toDateTimeString();
-        $bHumanTime = Carbon::createFromTimestampMs($this->binanceServerTimestamp)->toDateTimeString();
+        $timestamp = now()->getTimestampMs() + 1000;
+//        $humanTime = Carbon::createFromTimestampMs($timestamp)->toDateTimeString();
+//        $bHumanTime = Carbon::createFromTimestampMs($this->binanceServerTimestamp)->toDateTimeString();
 
-        Log::info("My Server Time: $timestamp: $humanTime");
-        Log::info("Binance Server Time: $this->binanceServerTimestamp: $bHumanTime");
+//        Log::info("My Server Time: $timestamp: $humanTime");
+//        Log::info("Binance Server Time: $this->binanceServerTimestamp: $bHumanTime");
+//        Log::info("Last Update: {$this->user->fetched_remote_orders_at}");
 
         $this->currentAsset = $asset;
         $symbolPairs = "{$this->currentAsset}USDT";

@@ -28,15 +28,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-//        $chunkedCollection = User::all()->chunk(100);
+        $chunkedCollection = User::all()->chunk(100);
 
-//        foreach ($chunkedCollection as $item) {
-//            foreach ($item as $user) {
-//                $schedule->job(ImportNewAssetsFromBinance::run(['user_id' => $user]))->hourly();
-//                $schedule->job(UpdateAssetLogs::run(['user_id' => $user]))->hourly();
-//                $schedule->job(UpdateAssetValue::run(['user_id' => $user]))->hourly();
-//            }
-//        }
+        foreach ($chunkedCollection as $item) {
+            foreach ($item as $user) {
+                $schedule->job(ImportNewAssetsFromBinance::run(['user_id' => $user]))->hourly();
+                $schedule->job(UpdateAssetLogs::run(['user_id' => $user]))->hourly();
+                $schedule->job(UpdateAssetValue::run(['user_id' => $user]))->hourly();
+            }
+        }
     }
 
     /**
