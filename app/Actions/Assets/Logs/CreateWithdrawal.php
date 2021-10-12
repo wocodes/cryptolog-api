@@ -57,10 +57,8 @@ class CreateWithdrawal extends Action
         $log->save();
 
         Log::info("completed logged withdrawal");
-//        $this->user()->fetched_remote_orders_at = now();
-//        $this->user()->save();
 
-//        return $withdrawal;
+        return $withdrawal;
     }
 
     public function jsonResponse($withdrawal)

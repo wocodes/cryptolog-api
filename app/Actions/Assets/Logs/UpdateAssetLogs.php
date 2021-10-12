@@ -159,9 +159,6 @@ class UpdateAssetLogs extends Action implements ShouldQueue
         ];
 
         CreateLog::run($data);
-
-        $this->user->fetched_remote_orders_at = now();
-        $this->user->save();
     }
 
 
@@ -182,9 +179,6 @@ class UpdateAssetLogs extends Action implements ShouldQueue
         ];
 
         CreateWithdrawal::run($data);
-
-        $this->user->fetched_remote_orders_at = now();
-        $this->user->save();
     }
 
 //    private function getBinanceServerTimestamp()
