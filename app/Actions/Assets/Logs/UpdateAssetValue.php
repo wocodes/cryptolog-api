@@ -54,7 +54,6 @@ class UpdateAssetValue extends Action implements ShouldQueue
      */
     public function handle()
     {
-
         $this->user = $this->user();
 
         if (!$this->user && $this->user_id) {
@@ -63,7 +62,7 @@ class UpdateAssetValue extends Action implements ShouldQueue
 
         Log::info("Updating Asset Values for User {$this->user->id}");
 
-        $this->currentAssetData = GetAssets24hTicker::run(['user_id' => $this->user]);
+        $this->currentAssetData = GetAssets24hTicker::run(['user_id' => $this->user->id]);
 
         $this->updateLogs();
     }
@@ -85,7 +84,9 @@ class UpdateAssetValue extends Action implements ShouldQueue
                         $bidPrice = $datum['bidPrice'];
 
                         $chunkedLog->current_value = $qtyBought * $bidPrice;
+                        $chunkedLog->current_value_fiat = $chunkedLog->current_value * $usdtSellRate ?? 0;
                         $chunkedLog->initial_value = (float) $chunkedLog->initial_value > 0 ? $chunkedLog->initial_value : $chunkedLog->current_value;
+                        $chunkedLog->initial_value_fiat = $chunkedLog->initial_value * $usdtSellRate ?? 0;
                         $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
                         $chunkedLog->{'24_hr_change'} = $datum['priceChangePercent'];
                         $chunkedLog->roi = $chunkedLog->initial_value > 0 ? $chunkedLog->profit_loss / $chunkedLog->initial_value : 0;

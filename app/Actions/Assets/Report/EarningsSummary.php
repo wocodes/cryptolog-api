@@ -35,7 +35,12 @@ class EarningsSummary extends Action
      */
     public function handle()
     {
-        $assetLogs = $this->user()->assetLogs()->select('asset_id', 'current_value')->get()->groupBy('asset.name')->toArray();
+        $assetLogs = $this->user()->assetLogs()
+            ->where('current_value', '>', 0)
+            ->select('asset_id', 'current_value')
+            ->get()
+            ->groupBy('asset.name')
+            ->toArray();
 
         $data = [];
         foreach($assetLogs as $key => $assetLog) {
