@@ -2,7 +2,10 @@
 
 namespace App\Console;
 
+use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
 use App\Actions\Assets\Logs\UpdateAssetLogs;
+use App\Actions\Assets\Logs\UpdateAssetValue;
+use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -25,8 +28,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        $schedule->job(new UpdateAssetLogs)->hourly();
+        $chunkedCollection = User::all()->chunk(100);
+
+        foreach ($chunkedCollection as $item) {
+            foreach ($item as $user) {
+                $schedule->job(ImportNewAssetsFromBinance::run(['user_id' => $user]))->hourly();
+                $schedule->job(UpdateAssetLogs::run(['user_id' => $user]))->everySixHours();
+                $schedule->job(UpdateAssetValue::run(['user_id' => $user]))->everySixHours();
+            }
+        }
     }
 
     /**

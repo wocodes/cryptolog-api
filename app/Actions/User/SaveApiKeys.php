@@ -2,8 +2,8 @@
 
 namespace App\Actions\User;
 
-use App\Actions\Assets\Logs\ImportFromBinance;
-use App\Actions\Assets\Logs\UpdateAssetLogs;
+use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
+use App\Actions\Assets\Logs\UpdateAssetValue;
 use App\Events\ApiKeysSaved;
 use App\Models\Platform;
 use App\Traits\JsonResponse;
@@ -43,7 +43,7 @@ class SaveApiKeys extends Action implements ShouldQueue
      */
     public function handle()
     {
-        $this->user()->apiKeys()->create([
+        $this->user()->apiKeys()->firstOrCreate([
             'platform_id' => Platform::whereName('Binance')->firstOrFail()->id,
             'key' => $this->key,
             'secret' => $this->secret,
@@ -53,10 +53,7 @@ class SaveApiKeys extends Action implements ShouldQueue
         $this->user()->save();
 
         // now fetch data from binance!
-        ImportFromBinance::run();
-
-        // update the logs
-        UpdateAssetLogs::run();
+        ImportNewAssetsFromBinance::run();
 
         return true;
     }

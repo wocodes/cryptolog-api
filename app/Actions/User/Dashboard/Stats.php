@@ -50,16 +50,28 @@ class Stats extends Action
 
     private function getTotalAssetsValue()
     {
-        return $this->user()->assetLogs()->select('current_value')->sum('current_value');
+        $query = $this->user()->assetLogs();
+        return [
+            "usd" => $query->select('current_value')->sum('current_value'),
+            "fiat" => $query->select('current_value_fiat')->sum('current_value_fiat')
+        ];
     }
 
     private function getTotalAssetsProfit()
     {
-        return $this->user()->assetLogs()->where('profit_loss', '>', 0)->select('profit_loss')->sum('profit_loss');
+        $query = $this->user()->assetLogs()->where('profit_loss', '>', 0);
+        return [
+            "usd" => $query->select('profit_loss')->sum('profit_loss'),
+            "fiat" => $query->select('profit_loss_fiat')->sum('profit_loss_fiat')
+        ];
     }
 
     private function getTotalAssetsLoss()
     {
-        return $this->user()->assetLogs()->where('profit_loss', '<', 0)->select('profit_loss')->sum('profit_loss');
+        $query = $this->user()->assetLogs()->where('profit_loss', '<', 0);
+        return [
+            "usd" => $query->select('profit_loss')->sum('profit_loss'),
+            "fiat" => $query->select('profit_loss_fiat')->sum('profit_loss_fiat')
+        ];
     }
 }

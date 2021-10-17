@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Actions\Assets\Logs\ImportFromBinance;
+use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -22,7 +22,7 @@ class ApiKeysSaved
      */
     public function __construct()
     {
-//        ImportFromBinance::run();
+//        ImportNewAssetsFromBinance::run();
     }
 
     /**

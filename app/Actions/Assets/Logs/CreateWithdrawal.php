@@ -4,6 +4,7 @@ namespace App\Actions\Assets\Logs;
 
 use App\Models\AssetLog;
 use App\Traits\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
 class CreateWithdrawal extends Action
@@ -49,11 +50,13 @@ class CreateWithdrawal extends Action
             'date' => $this->date
         ]);
 
+        Log::info("Logged withdrawal for {$log->asset->symbol}");
+
+        Log::info("Subtracting quantity");
         $log->quantity_bought = $log->quantity_bought - $this->quantity;
         $log->save();
 
-        // update all logs => correct version should be to update the specific log affected by this
-        UpdateAssetLogs::run();
+        Log::info("completed logged withdrawal");
 
         return $withdrawal;
     }

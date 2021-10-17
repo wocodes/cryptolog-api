@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Actions\Assets\Logs\ImportFromBinance;
+use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
 use App\Events\ApiKeysSaved;
 use App\Listeners\ImportAssetsFromBinance;
 use Illuminate\Auth\Events\Registered;
@@ -23,7 +23,7 @@ class EventServiceProvider extends ServiceProvider
         ],
 
 //        ApiKeysSaved::class => [
-//            ImportFromBinance::class, 'handle'
+//            ImportNewAssetsFromBinance::class, 'handle'
 //        ]
     ];
 

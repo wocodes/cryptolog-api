@@ -19,6 +19,8 @@ class CreateUserApiKeysTable extends Migration
             $table->foreignId('platform_id')->constrained();
             $table->string('key')->nullable();
             $table->string('secret')->nullable();
+
+            $table->unique(['user_id', 'platform_id', 'key', 'secret']);
             $table->timestamps();
         });
     }
