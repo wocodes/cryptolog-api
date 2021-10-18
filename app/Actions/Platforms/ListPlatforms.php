@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Actions\Assets;
+namespace App\Actions\Platforms;
 
 use App\Models\Asset;
+use App\Models\AssetType;
+use App\Models\Platform;
 use App\Traits\JsonResponse;
+use Illuminate\Database\Eloquent\Collection;
 use Lorisleiva\Actions\Action;
 
-class Get extends Action
+class ListPlatforms extends Action
 {
     /**
      * Determine if the user is authorized to make this action.
@@ -19,7 +22,7 @@ class Get extends Action
     }
 
     /**
-     * Get the validation rules that apply to the action.
+     * ListPlatforms the validation rules that apply to the action.
      *
      * @return array
      */
@@ -35,21 +38,20 @@ class Get extends Action
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(): Collection
     {
         // Execute the action.
-        $assets = Asset::query();
+        if ($this->asset_type_id) {
+            $assetType = AssetType::findOrFail($this->asset_type_id);
 
-        if($this->asset_type_id) {
-            $assets =  $assets->where('asset_type_id', $this->asset_type_id);
+            return $assetType->platforms;
         }
 
-        return $assets->get();
-
+        return Platform::all();
     }
 
-    public function jsonResponse($assets)
+    public function jsonResponse($platforms)
     {
-        return JsonResponse::success( $assets, "Fetched assets list");
+        return JsonResponse::success($platforms, "Fetched platforms list");
     }
 }

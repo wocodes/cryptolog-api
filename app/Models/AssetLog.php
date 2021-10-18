@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class AssetLog extends Model
 {
-    protected $fillable = ["platform_id", "asset_id", "quantity_bought", "initial_value", "current_value", "profit_loss", "24_hr_change", "date_bought", "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_naira"];
+    protected $fillable = [
+        "platform_id", "asset_id", "quantity_bought", "initial_value", "initial_value_fiat",
+        "current_value", "current_value_fiat", "profit_loss", "24_hr_change", "date_bought",
+        "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_fiat"
+    ];
 
 
     protected $with = ["asset:id,name,symbol"];
@@ -27,8 +31,13 @@ class AssetLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected function serializeDate(DateTimeInterface $date)
+    public function withdrawals()
     {
-        return $date->format('Y-m-d H:i:s');
+        return $this->hasMany(Withdrawal::class);
     }
+
+//    protected function serializeDate(DateTimeInterface $date)
+//    {
+//        return $date->format('Y-m-d H:i:s');
+//    }
 }

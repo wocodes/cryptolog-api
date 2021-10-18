@@ -10,4 +10,9 @@ class AssetType extends Model
     {
         return $this->belongsTo(ExternalApi::class, "external_api_id", "id");
     }
+
+    public function platforms()
+    {
+        return $this->belongsToMany(Platform::class);
+    }
 }

@@ -10,4 +10,9 @@ class Platform extends Model
     {
         return $this->belongsToMany(Asset::class);
     }
+
+    public function assetTypes()
+    {
+        return $this->belongsToMany(AssetType::class);
+    }
 }

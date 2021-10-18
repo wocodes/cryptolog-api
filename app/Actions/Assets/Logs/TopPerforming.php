@@ -17,7 +17,7 @@ class TopPerforming extends Action
     }
 
     /**
-     * Get the validation rules that apply to the action.
+     * ListPlatforms the validation rules that apply to the action.
      *
      * @return array
      */
@@ -38,7 +38,7 @@ class TopPerforming extends Action
             ->where('profit_loss', '>', 0)
             ->orderBy('profit_loss', 'DESC')
             ->limit(5)
-            ->with('asset.assetType','platform')
+            ->with('asset.assetType', 'platform', 'withdrawals')
             ->paginate(10);
     }
 }

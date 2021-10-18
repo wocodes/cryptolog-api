@@ -3,6 +3,8 @@
 namespace App\Actions\User\Auth;
 
 use App\Models\User;
+use App\Notifications\SendRegistrationNotification;
+use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Action;
 
 class Login extends Action
@@ -18,7 +20,7 @@ class Login extends Action
     }
 
     /**
-     * Get the validation rules that apply to the action.
+     * ListPlatforms the validation rules that apply to the action.
      *
      * @return array
      */
@@ -58,10 +60,14 @@ class Login extends Action
 
             return response()->json($response, 400);
         }
+
+        $user = $user->load('fiat:id,country_code,symbol,usdt_sell_rate,usdt_buy_rate');
         $user->token = $user->createToken('user-token')->accessToken;
 
-        $user = $user->only('id', 'name', 'email', 'token', 'is_admin');
+        $user = $user->only('id', 'name', 'email', 'token', 'is_admin', 'finished_setup', 'fiat_id', 'fiat', 'has_api_keys');
         $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
+
+//        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());
 
         return response()->json($response);
     }

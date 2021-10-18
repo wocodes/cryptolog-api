@@ -24,6 +24,10 @@ class User extends Authenticatable
         'name', 'email', 'password',
     ];
 
+    protected $appends = [
+      'has_api_keys'
+    ];
+
     /**
      * The attributes that should be hidden for arrays.
      *
@@ -54,5 +58,20 @@ class User extends Authenticatable
     public function getIsAdminAttribute($value)
     {
         return (bool) $value;
+    }
+
+    public function fiat()
+    {
+        return $this->belongsTo(Fiat::class);
+    }
+
+    public function apiKeys()
+    {
+        return $this->hasMany(UserApiKey::class);
+    }
+
+    public function getHasApiKeysAttribute()
+    {
+        return $this->apiKeys()->exists();
     }
 }

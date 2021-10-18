@@ -24,7 +24,7 @@ class GetLogs extends Action
     }
 
     /**
-     * Get the validation rules that apply to the action.
+     * ListPlatforms the validation rules that apply to the action.
      *
      * @return array
      */
@@ -60,7 +60,7 @@ class GetLogs extends Action
                 break;
 
             default:
-                $logs = $this->user()->assetLogs()->with('asset.assetType','platform')->paginate(10);
+                $logs = $this->user()->assetLogs()->with('asset.assetType', 'platform', 'withdrawals')->get();
                 break;
         }
 
