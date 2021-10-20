@@ -42,7 +42,7 @@ class Add extends Action
         $emailExists = Waitlist::whereEmail($this->email)->first();
 
         if(!$emailExists) {
-//            Waitlist::create(['email' => $this->email]);
+            Waitlist::create(['email' => $this->email]);
 
             Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
         }
