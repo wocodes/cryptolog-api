@@ -2,6 +2,7 @@
 
 namespace App\Actions\Assets\Report;
 
+use App\Models\Asset;
 use App\Traits\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Action;
@@ -35,14 +36,36 @@ class EarningsSummary extends Action
      */
     public function handle()
     {
-        $assetLogs = $this->user()->assetLogs()->select('asset_id', 'current_value')->get()->groupBy('asset.name')->toArray();
-
         $data = [];
-        foreach($assetLogs as $key => $assetLog) {
-            foreach($assetLog as $log) {
-                $data[$key]["value"] = ($data[$key]["value"] ?? 0) + $log['current_value'];
-            }
+        $assets = Asset::whereHas("logs", function ($query) {
+            $query->where('user_id', $this->user()->id)
+                ->where('current_value', '>', 0);
+        })->select('id', 'name', 'symbol', 'icon')->get()->toArray();
+
+        foreach ($assets as $asset) {
+            $log = $this->user()->assetLogs()->where('asset_id', $asset['id']);
+
+            $data[] = [
+                "name" => $asset['name'],
+                "icon" => $asset['icon'] ?? null,
+                "symbol" => $asset['symbol'],
+                "qty" => $log->sum('quantity_bought'),
+                "current_value" => $log->sum('current_value'),
+                "current_value_fiat" => $log->sum('current_value_fiat'),
+                "percent_change" => $log->sum('24_hr_change')
+            ];
         }
+
+
+
+
+
+//        $data = [];
+//        foreach($assetLogs as $key => $assetLog) {
+//            foreach($assetLog as $log) {
+//                $data[$key]["value"] = ($data[$key]["value"] ?? 0) + $log['current_value'];
+//            }
+//        }
 
         return JsonResponse::success($data);
     }

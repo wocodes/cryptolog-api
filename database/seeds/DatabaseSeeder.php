@@ -15,11 +15,11 @@ class DatabaseSeeder extends Seeder
 //        Artisan::call('passport:install');
 
 //         $this->call(UsersSeeder::class);
-//         $this->call(PlatformsSeeder::class);
-//         $this->call(ExternalApiSeeder::class);
-//         $this->call(AssetTypesSeeder::class);
+         $this->call(PlatformsSeeder::class);
+         $this->call(ExternalApiSeeder::class);
+         $this->call(AssetTypesSeeder::class);
          $this->call(FiatSeeder::class);
-//         $this->call(AssetsSeeder::class);
+         $this->call(AssetsSeeder::class);
 //         $this->call(AssetLogsSeeder::class);
     }
 }

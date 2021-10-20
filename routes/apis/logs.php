@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api')->prefix("logs")->group(function ($router) {
-    $router->get('/', '\App\Actions\Assets\Logs\GetLogs');
-    $router->post('/', '\App\Actions\Assets\Logs\CreateLog');
-    $router->get('/update', '\App\Actions\Assets\Logs\UpdateAssetLogs');
+    Route::get('/', '\App\Actions\Assets\Logs\GetLogs');
+    Route::post('/', '\App\Actions\Assets\Logs\CreateLog');
+    $router->get('/update', '\App\Actions\Assets\Logs\UpdateAssetValue');
     $router->post('/{id}/withdrawal', '\App\Actions\Assets\Logs\CreateWithdrawal');
 });
 
