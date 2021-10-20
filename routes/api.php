@@ -35,3 +35,5 @@ require 'apis/assets.php';
 require 'apis/logs.php';
 require_once 'apis/platforms.php';
 require_once 'apis/fiat.php';
+
+Route::post("waitlist", "\App\Actions\Waitlist\Add");

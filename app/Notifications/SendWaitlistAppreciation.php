@@ -7,20 +7,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SendRegistrationNotification extends Notification implements ShouldQueue
+class SendWaitlistAppreciation extends Notification
 {
     use Queueable;
-
-    public string $email;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($email)
+    public function __construct()
     {
-        $this->email = $email;
+        //
     }
 
     /**
@@ -42,15 +40,10 @@ class SendRegistrationNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $personsNameFromEmail = explode('@', $this->email);
         return (new MailMessage)
-                    ->greeting("Hello {$personsNameFromEmail[0]}")
-                    ->line('AssetLog is a smart asset/investments tracker that  helps you analyse your investment portfolio and share insights on how you can maximise your wealth.')
-                    ->line('Our robust analytical AI tool stays ahead of time to assists you plan and prepare your future investments and avoidance of potential risks.')
-                    ->line('')
-                    ->line('As you\'re excited and await to get on board, we ask that you kindly fill this short survey by clicking the link below')
-                    ->action('Fill Survey', url('https://forms.gle/AdU2M6ZJFwYTh7V99'))
-                    ->line('Thank you for joining our waitlist!');
+                    ->line('The introduction to the notification.')
+                    ->action('Notification Action', url('/'))
+                    ->line('Thank you for using our application!');
     }
 
     /**
