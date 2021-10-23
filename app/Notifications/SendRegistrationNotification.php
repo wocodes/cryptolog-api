@@ -44,6 +44,7 @@ class SendRegistrationNotification extends Notification implements ShouldQueue
     {
         $personsNameFromEmail = explode('@', $this->email);
         return (new MailMessage)
+                    ->subject("You're onto something amazing! Thanks for joining our waitlist")
                     ->greeting("Hello {$personsNameFromEmail[0]}")
                     ->line('AssetLog is a smart asset/investments tracker that  helps you analyse your investment portfolio and share insights on how you can maximise your wealth.')
                     ->line('Our robust analytical AI tool stays ahead of time to assists you plan and prepare your future investments and avoidance of potential risks.')
