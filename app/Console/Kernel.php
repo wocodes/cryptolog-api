@@ -28,8 +28,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('telescope:prune --hours=48')->daily();
-
         $schedule->call(function() {
             $chunkedCollection = User::all()->chunk(50);
             foreach ($chunkedCollection as $item) {
