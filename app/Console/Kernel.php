@@ -8,6 +8,7 @@ use App\Actions\Assets\Logs\UpdateAssetValue;
 use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -38,6 +39,8 @@ class Kernel extends ConsoleKernel
                 }
             }
         })->hourly();
+
+        $schedule->call(fn() => Log::info('running job'))->everyMinute();
     }
 
     /**
