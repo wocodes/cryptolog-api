@@ -26,7 +26,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 //    private int $binanceServerTimestamp;
     private string $currentAsset;
     private int $countImport = 0;
-    private ?Authenticatable $user;
+    private ?Authenticatable $user = null;
     private $userApiKeys;
     private const API_URL = "https://api2.binance.com/api/v3";
 
