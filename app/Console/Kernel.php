@@ -39,8 +39,6 @@ class Kernel extends ConsoleKernel
                 }
             }
         })->hourly();
-
-        $schedule->call(fn() => Log::info('running job'))->everyMinute();
     }
 
     /**

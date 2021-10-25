@@ -35,6 +35,7 @@ class TopPerforming extends Action
     {
         return $this->user()
             ->assetLogs()
+            ->where('is_sold', 0)
             ->where('profit_loss', '>', 0)
             ->orderBy('profit_loss', 'DESC')
             ->limit(5)
