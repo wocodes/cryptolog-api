@@ -60,7 +60,10 @@ class GetLogs extends Action
                 break;
 
             default:
-                $logs = $this->user()->assetLogs()->with('asset.assetType', 'platform', 'withdrawals')->get();
+                $active = $this->user()->assetLogs()->where('is_sold', 0)->where('current_value', '>', 1.00)->with('asset.assetType', 'platform', 'withdrawals')->get()->toArray();
+                $noValue = $this->user()->assetLogs()->where('is_sold', 0)->where('current_value', 0.00)->with('asset.assetType', 'platform', 'withdrawals')->get()->toArray();
+                $sold = $this->user()->assetLogs()->where('is_sold', 1)->with('asset.assetType', 'platform', 'withdrawals')->get()->toArray();
+                $logs = array_merge($active, $noValue, $sold);
                 break;
         }
 

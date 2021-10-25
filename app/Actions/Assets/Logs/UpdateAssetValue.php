@@ -90,6 +90,10 @@ class UpdateAssetValue extends Action implements ShouldQueue
                         $chunkedLog->last_updated_at = now();
                         $chunkedLog->profit_loss_fiat = $chunkedLog->profit_loss * $usdtSellRate ?? 0;
 
+                        if($chunkedLog->initial_value > 1 && $chunkedLog->current_value < 1 ) {
+                            $chunkedLog->is_sold = 1;
+                        }
+
                         $chunkedLog->save();
                     }
                 });
