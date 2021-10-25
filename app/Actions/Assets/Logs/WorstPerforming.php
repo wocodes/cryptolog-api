@@ -35,6 +35,7 @@ class WorstPerforming extends Action
     {
         return $this->user()
             ->assetLogs()
+            ->where('is_sold', 0)
             ->where('profit_loss', '<', 0)
             ->orderBy('profit_loss', 'ASC')
             ->limit(5)
