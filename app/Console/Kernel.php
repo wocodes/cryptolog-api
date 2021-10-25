@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function() {
-            $chunkedCollection = User::all()->chunk(50);
+            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
             foreach ($chunkedCollection as $item) {
                 foreach ($item as $user) {
                     ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
