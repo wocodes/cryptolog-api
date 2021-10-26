@@ -152,8 +152,8 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
             if (substr($accountBalance['asset'], 0, 2) === 'LD') {
                 $accountBalance['asset'] = ltrim($accountBalance['asset'], 'LD');
             }
-
-            $userHasAsset = $this->user()->assetLogs()->whereHas('asset', function ($query) use ($accountBalance) {
+            
+            $userHasAsset = $this->user->assetLogs()->whereHas('asset', function ($query) use ($accountBalance) {
                 $query->where('symbol', $accountBalance['asset']);
             })->exists();
 
@@ -167,6 +167,7 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
                         "asset_id" => Asset::where('symbol', $accountBalance['asset'])->firstOrFail()->id,
                         "quantity_bought" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
                         "initial_value" => "0",
+                        "user_id" => $this->user->id
                     ];
 
                     Log::info('asset data', $data);
