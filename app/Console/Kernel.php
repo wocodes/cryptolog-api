@@ -34,11 +34,11 @@ class Kernel extends ConsoleKernel
             foreach ($chunkedCollection as $item) {
                 foreach ($item as $user) {
                     ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
-                    UpdateAssetLogs::run(['user_id' => $user->id]);
-                    UpdateAssetValue::run(['user_id' => $user->id]);
+//                    UpdateAssetLogs::run(['user_id' => $user->id]);
+//                    UpdateAssetValue::run(['user_id' => $user->id]);
                 }
             }
-        })->hourly();
+        })->everyMinute();
 
         $schedule->call(fn() => Log::info('running job'))->everyMinute();
     }
