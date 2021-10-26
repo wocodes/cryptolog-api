@@ -42,11 +42,17 @@ class Add extends Action
         $emailExists = Waitlist::whereEmail($this->email)->first();
 
         if(!$emailExists) {
-            Waitlist::create(['email' => $this->email]);
+            $waitlist = Waitlist::create(['email' => $this->email]);
 
-            Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
+            if($waitlist) {
+                Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
+
+                return JsonResponse::success([], "Thanks for joining our waitlist.");
+            }
+
+            return JsonResponse::error([], "Couldn't subscribe to waitlist. Pls try again");
         }
 
-        return JsonResponse::success([], "Thanks for joining our waitlist.");
+        return JsonResponse::success([], "You are already subscribed.");
     }
 }
