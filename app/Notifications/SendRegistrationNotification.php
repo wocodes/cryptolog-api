@@ -51,7 +51,7 @@ class SendRegistrationNotification extends Notification implements ShouldQueue
                     ->line('')
                     ->line('As you\'re excited and await to get on board, we ask that you kindly fill this short survey by clicking the link below')
                     ->action('Fill Survey', url('https://forms.gle/AdU2M6ZJFwYTh7V99'))
-                    ->line('Thank you for joining our waitlist!');
+                    ->line('&#10084;&#65039; From the AssetLog Team!');
     }
 
     /**

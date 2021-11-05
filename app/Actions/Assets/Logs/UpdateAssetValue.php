@@ -3,15 +3,11 @@
 namespace App\Actions\Assets\Logs;
 
 use App\Actions\Binance\GetAssets24hTicker;
-use App\Models\Asset;
-use App\Models\AssetLog;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
@@ -21,8 +17,7 @@ class UpdateAssetValue extends Action implements ShouldQueue
 
     protected static $commandSignature = 'update:value {--user_id=}';
 
-    private Collection $logs;
-    private ?Authenticatable $user;
+    private ?Authenticatable $user = null;
     private array $currentAssetData = [];
 
     /**
@@ -94,6 +89,10 @@ class UpdateAssetValue extends Action implements ShouldQueue
                         $chunkedLog->current_price = $datum['bidPrice'];
                         $chunkedLog->last_updated_at = now();
                         $chunkedLog->profit_loss_fiat = $chunkedLog->profit_loss * $usdtSellRate ?? 0;
+
+                        if($chunkedLog->initial_value > 1 && $chunkedLog->current_value < 1 ) {
+                            $chunkedLog->is_sold = 1;
+                        }
 
                         $chunkedLog->save();
                     }

@@ -11,7 +11,7 @@ trait JsonResponse
     {
         $responseData = [
             "message" => $message ?? "Successful",
-            "data" => is_object($data) ? $data->toArray() : $data,
+            "data" => $data && is_object($data) ? $data->toArray() : $data,
             "code" => $code ?? 200
         ];
 

@@ -7,5 +7,5 @@ use Illuminate\Support\Facades\Log;
 
 class Waitlist extends Model
 {
-    protected $fillable = ['email'];
+    protected $fillable = ['email', 'invited'];
 }

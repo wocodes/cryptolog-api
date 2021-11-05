@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Actions\Assets\Logs;
+namespace App\Actions\Admin\User;
 
+use App\Models\Waitlist;
+use App\Traits\JsonResponse;
 use Lorisleiva\Actions\Action;
 
-class TopPerforming extends Action
+class GetWaitlist extends Action
 {
     /**
      * Determine if the user is authorized to make this action.
@@ -17,7 +19,7 @@ class TopPerforming extends Action
     }
 
     /**
-     * ListPlatforms the validation rules that apply to the action.
+     * Get the validation rules that apply to the action.
      *
      * @return array
      */
@@ -33,13 +35,11 @@ class TopPerforming extends Action
      */
     public function handle()
     {
-        return $this->user()
-            ->assetLogs()
-            ->where('is_sold', 0)
-            ->where('profit_loss', '>', 0)
-            ->orderBy('profit_loss', 'DESC')
-            ->limit(5)
-            ->with('asset.assetType', 'platform', 'withdrawals')
-            ->paginate(10);
+        return Waitlist::all();
+    }
+
+    public function jsonResponse($users)
+    {
+        return JsonResponse::success($users, "Waitlist of Users");
     }
 }

@@ -40,6 +40,8 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
      */
     protected function hideSensitiveRequestDetails()
     {
+        return;
+
         if ($this->app->environment('local')) {
             return;
         }
@@ -64,7 +66,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     {
         Gate::define('viewTelescope', function ($user) {
             return in_array($user->email, [
-                'admin@assetlog.jaapps.com'
+                'admin@assetlog.co'
             ]);
         });
     }
