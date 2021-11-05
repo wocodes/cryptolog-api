@@ -16,5 +16,6 @@ Route::middleware(['admin', 'auth:api'])->prefix("admin/assets")->group(function
 
 Route::middleware(['admin', 'auth:api'])->prefix("admin/users")->group(function () {
     Route::get('/send-invite/{id}', '\App\Actions\Admin\User\SendInvite');
+    Route::get('/waitlist', '\App\Actions\Admin\User\GetWaitlist');
 });
 
