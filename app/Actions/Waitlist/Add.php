@@ -44,7 +44,7 @@ class Add extends Action
         if(!$emailExists) {
             Waitlist::create(['email' => $this->email]);
 
-            Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
+//            Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
         }
 
         return JsonResponse::success([], "Thanks for joining our waitlist.");
