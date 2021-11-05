@@ -14,7 +14,4 @@ Route::middleware(['admin', 'auth:api'])->prefix("admin/assets")->group(function
     Route::post('/', '\App\Actions\Admin\Asset\CreateAsset');
 });
 
-Route::middleware(['admin', 'auth:api'])->prefix("admin/users")->group(function () {
-    Route::get('/send-invite/{id}', '\App\Actions\Admin\User\SendInvite');
-});
 
