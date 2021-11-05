@@ -60,6 +60,8 @@ class SendInvite extends Action
         $user = User::create($data);
 
         $user->notifyNow(new SendInvitationNotification($randomCharPassword));
+
+        Waitlist::whereEmail($user->email)->update(['invited' => 1]);
     }
 
     public function jsonResponse($user)

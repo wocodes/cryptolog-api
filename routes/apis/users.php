@@ -15,3 +15,9 @@ Route::prefix("user")->group(function() {
         Route::post('/api-keys', '\App\Actions\User\SaveApiKeys');
     });
 });
+
+
+Route::middleware(['admin', 'auth:api'])->prefix("admin/users")->group(function () {
+    Route::get('/send-invite/{id}', '\App\Actions\Admin\User\SendInvite');
+    Route::get('/waitlist', '\App\Actions\Admin\User\GetWaitlist');
+});
