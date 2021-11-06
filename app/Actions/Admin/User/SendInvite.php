@@ -50,7 +50,7 @@ class SendInvite extends Action
 
     private function createUserAccount(Waitlist $user)
     {
-        $randomCharPassword = base64_encode(now());
+        $randomCharPassword = substr(md5(time()), 0, 10);
         $data = [
             'name' => explode("@", $user->email)[0],
             'email' => $user->email,
