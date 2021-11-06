@@ -53,7 +53,7 @@ class CreateWithdrawal extends Action
         Log::info("Logged withdrawal for {$log->asset->symbol}");
 
         Log::info("Subtracting quantity");
-        $log->quantity_bought = $log->quantity_bought - $this->quantity;
+        $log->current_quantity = $log->current_quantity - $this->quantity;
         $log->save();
 
         Log::info("completed logged withdrawal");

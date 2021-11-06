@@ -66,6 +66,7 @@ class CreateLog extends Action
             "platform_id" => $this->platform_id ?? $platform->id,
             "asset_id" => $this->asset_id,
             "quantity_bought" => $this->quantity_bought,
+            "current_quantity" => $this->current_quantity,
             "initial_value" => $this->initial_value,
             "current_value" => $this->initial_value,
             "date_bought" => $this->date_of_purchase

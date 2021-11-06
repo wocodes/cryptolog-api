@@ -49,7 +49,7 @@ class EarningsSummary extends Action
                 "name" => $asset['name'],
                 "icon" => $asset['icon'] ?? null,
                 "symbol" => $asset['symbol'],
-                "qty" => $log->sum('quantity_bought'),
+                "qty" => $log->sum('current_quantity'),
                 "current_value" => $log->sum('current_value'),
                 "current_value_fiat" => $log->sum('current_value_fiat'),
                 "percent_change" => $log->sum('24_hr_change')
