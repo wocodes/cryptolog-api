@@ -51,10 +51,10 @@ class SendInvitationNotification extends Notification
             "We'd appreciate receiving your feedback as you use Assetlog, either via our in-app Chat, <a href=\"mailto:hello@assetlog.co\">email</a> or Whatsapp.",
             'Your ideas and opinions are highly welcomed and considered.',
             "Below are your login details:<br>
-            <strong>URL:</strong> <a href='https://assetlog.co/login'>https://assetlog.co/#/login</a><br>
             <strong>Email:</strong> $notifiable->email<br>
             <strong>Temporary Password:</strong> $this->password
             ",
+            '<a href="https://assetlog.co/#/login" style="margin:10px 0;text-decoration:none;font-weight:bold;background-color:#2456b4;color:#fff;border-radius:5px;padding:10px;">Login Now</a>',
             "Please kindly change your password to a secure, secret value that is also memorable &#128578;"
         ];
 
