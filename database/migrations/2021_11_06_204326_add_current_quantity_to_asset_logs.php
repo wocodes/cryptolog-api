@@ -14,7 +14,7 @@ class AddCurrentQuantityToAssetLogs extends Migration
     public function up()
     {
         Schema::table('asset_logs', function (Blueprint $table) {
-            $table->decimal('current_quantity', 16, 8)->after('quantity_bought');
+            $table->decimal('current_quantity', 16, 8)->after('quantity_bought')->default(0.0);
         });
     }
 
