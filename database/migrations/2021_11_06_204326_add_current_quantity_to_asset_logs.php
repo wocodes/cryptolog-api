@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AssetLog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,8 +15,17 @@ class AddCurrentQuantityToAssetLogs extends Migration
     public function up()
     {
         Schema::table('asset_logs', function (Blueprint $table) {
-            $table->decimal('current_quantity', 16, 8)->after('quantity_bought');
+            $table->decimal('current_quantity', 16, 8)->after('quantity_bought')->default(0.0);
         });
+
+        $logs = AssetLog::all();
+
+        if($logs->count()) {
+            foreach ($logs as $log) {
+                $log->current_quantity = $log->quantity_bought;
+                $log->save();
+            }
+        }
     }
 
     /**
