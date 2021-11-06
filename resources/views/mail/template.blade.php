@@ -1,12 +1,12 @@
 <html>
     <style>
         body {
-            width:30%;
+            width:50%;
             margin: 0 auto;
         }
 
         table {
-            width: 30%;
+            width: 100%;
             box-sizing:border-box;
             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol';
             margin:0 auto;

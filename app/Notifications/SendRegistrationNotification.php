@@ -42,16 +42,21 @@ class SendRegistrationNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $personsNameFromEmail = explode('@', $this->email);
+        $nameFromEmail = explode('@', $this->email)[0];
+        $contents = [
+            'AssetLog is a smart asset/investments service that helps you analyse your investment portfolio and share insights on how you can maximise your wealth.',
+            'Our robust analytical AI tool stays ahead of time to assists you plan and prepare your future investments and avoidance of potential risks.',
+            'As you\'re excited and await to get on board, we ask that you kindly fill this short survey by clicking the link below',
+            '<a href="https://forms.gle/AdU2M6ZJFwYTh7V99" style="margin:5px 0;text-decoration:none;font-weight:bold;background-color:#153675;color:#fff;border-radius:5px;padding:10px;">Fill Survey</a>',
+            "Please kindly change your password to a secure, secret value that is also memorable &#128578;"
+        ];
+
         return (new MailMessage)
-                    ->subject("You're onto something amazing! Thanks for joining our waitlist")
-                    ->greeting("Hello {$personsNameFromEmail[0]}")
-                    ->line('AssetLog is a smart asset/investments tracker that  helps you analyse your investment portfolio and share insights on how you can maximise your wealth.')
-                    ->line('Our robust analytical AI tool stays ahead of time to assists you plan and prepare your future investments and avoidance of potential risks.')
-                    ->line('')
-                    ->line('As you\'re excited and await to get on board, we ask that you kindly fill this short survey by clicking the link below')
-                    ->action('Fill Survey', url('https://forms.gle/AdU2M6ZJFwYTh7V99'))
-                    ->line('&#10084;&#65039; From the AssetLog Team!');
+            ->subject("You're onto something amazing!")
+            ->view('mail.template', [
+                'nameFromEmail' => $nameFromEmail,
+                'contents' => $contents,
+            ]);
     }
 
     /**
