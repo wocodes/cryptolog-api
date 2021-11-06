@@ -75,10 +75,10 @@ class UpdateAssetValue extends Action implements ShouldQueue
                     foreach ($chunkedLogs as $chunkedLog) {
                         $usdtSellRate = $chunkedLog->user->fiat->usdt_sell_rate ?? 0;
 
-                        $qtyBought = $chunkedLog->quantity_bought;
+                        $currentQty = $chunkedLog->current_quantity;
                         $bidPrice = $datum['bidPrice'];
 
-                        $chunkedLog->current_value = $qtyBought * $bidPrice;
+                        $chunkedLog->current_value = $currentQty * $bidPrice;
                         $chunkedLog->current_value_fiat = $chunkedLog->current_value * $usdtSellRate ?? 0;
                         $chunkedLog->initial_value = (float) $chunkedLog->initial_value > 0 ? $chunkedLog->initial_value : $chunkedLog->current_value;
                         $chunkedLog->initial_value_fiat = $chunkedLog->initial_value * $usdtSellRate ?? 0;

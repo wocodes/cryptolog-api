@@ -166,6 +166,7 @@ class ImportNewAssetsFromBinance extends Action implements ShouldQueue
                         "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
                         "asset_id" => Asset::where('symbol', $accountBalance['asset'])->firstOrFail()->id,
                         "quantity_bought" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
+                        "current_quantity" => (string) $totalBalanceQty, // OR $asset['executedQty'] (is one of them)
                         "initial_value" => "0",
                         "user_id" => $this->user->id
                     ];

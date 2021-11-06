@@ -153,6 +153,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
             "platform_id" => Platform::whereName("Binance")->firstOrFail()->id,
             "asset_id" => Asset::where('symbol', $this->currentAsset)->firstOrFail()->id,
             "quantity_bought" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
+            "current_quantity" => $asset['origQty'], // OR $asset['executedQty'] (is one of them)
             "initial_value" => (string) $initialValue,
             "date_of_purchase" => Carbon::parse($asset['time'])->toDate(),
             "user_id" => $this->user->id,
@@ -168,7 +169,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 
         $getWithrawableLog = $this->user->assetLogs()->whereHas('asset', function ($query) {
             $query->whereName($this->currentAsset);
-        })->where('quantity_bought', '>', $asset['origQty'])
+        })->where('current_quantity', '>', $asset['origQty'])
             ->orderBy('profit_loss', 'DESC')->first();
 
         $data = [
