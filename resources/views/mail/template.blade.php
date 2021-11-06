@@ -1,7 +1,7 @@
 <html>
     <style>
         body {
-            width:50%;
+            width:30%;
             margin: 0 auto;
         }
 
@@ -14,7 +14,7 @@
         }
 
         h1 {
-            color:#3d4852;font-size:18px;font-weight:bold;margin-top:0;text-align:left
+            color:#3d4852;font-size:12px;font-weight:bold;margin-top:0;text-align:left
         }
         
         p {
