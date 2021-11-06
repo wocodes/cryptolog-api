@@ -20,9 +20,11 @@ class AddCurrentQuantityToAssetLogs extends Migration
 
         $logs = AssetLog::all();
 
-        foreach ($logs as $log) {
-            $log->current_quantity = $log->quantity_bought;
-            $log->save();
+        if($logs->count()) {
+            foreach ($logs as $log) {
+                $log->current_quantity = $log->quantity_bought;
+                $log->save();
+            }
         }
     }
 
