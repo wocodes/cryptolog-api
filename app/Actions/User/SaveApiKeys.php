@@ -31,8 +31,8 @@ class SaveApiKeys extends Action implements ShouldQueue
     public function rules()
     {
         return [
-            "key" => "required|string",
-            "secret" => "required|string",
+            "key" => "nullable|string",
+            "secret" => "nullable|string",
         ];
     }
 

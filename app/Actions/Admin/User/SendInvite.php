@@ -54,7 +54,8 @@ class SendInvite extends Action
         $data = [
             'name' => explode("@", $user->email)[0],
             'email' => $user->email,
-            'password' => bcrypt($randomCharPassword)
+            'password' => bcrypt($randomCharPassword),
+            'referred_by' => $user->referred_by
         ];
 
         $user = User::create($data);

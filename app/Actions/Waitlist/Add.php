@@ -2,9 +2,11 @@
 
 namespace App\Actions\Waitlist;
 
+use App\Models\User;
 use App\Models\Waitlist;
 use App\Notifications\SendRegistrationNotification;
 use App\Traits\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Action;
 
@@ -28,7 +30,8 @@ class Add extends Action
     public function rules()
     {
         return [
-            'email' => 'required|email:rfc,dns'
+            'email' => 'required|email:rfc,dns',
+            'ref' => 'nullable|string'
         ];
     }
 
@@ -42,12 +45,18 @@ class Add extends Action
         $emailExists = Waitlist::whereEmail($this->email)->first();
 
         if(!$emailExists) {
-            $waitlist = Waitlist::create(['email' => $this->email]);
+            $data = ['email' => $this->email];
+
+            if($this->ref) {
+                $data['referred_by'] = User::where('referral_code', $this->ref)->first()->id;
+            }
+
+            $waitlist = Waitlist::create($data);
 
             if($waitlist) {
                 Notification::route('mail', $this->email)->notifyNow(new SendRegistrationNotification($this->email));
 
-                return JsonResponse::success([], "Thanks for joining our waitlist.");
+                return JsonResponse::success([], "Thanks. You will receive an Invite.");
             }
 
             return JsonResponse::error([], "Couldn't subscribe to waitlist. Pls try again");
