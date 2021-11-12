@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix("user")->group(function() {
     Route::post("/register", '\App\Actions\User\Auth\Register');
     Route::post('/login', '\App\Actions\User\Auth\Login');
+    Route::post('/reset-password', '\App\Actions\User\Auth\ResetPassword');
 
     Route::middleware(['auth:api'])->group(function () {
         Route::get('/', '\App\Actions\User\GetUser');

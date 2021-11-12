@@ -43,19 +43,24 @@ class SendInvitationNotification extends Notification
      */
     public function toMail($notifiable)
     {
+        $referralCode = $this->saveReferralCode($notifiable);
+
         $nameFromEmail = explode('@', $notifiable->email)[0];
         $contents = [
             'We welcome you on board to try out Assetlog.',
             'Thanks for joining us on this journey. 
-            You are special and as such we desire to share with you this priviledge of being a part of our early app testers.',
+            You are special and as such we desire to share with you this privilege of being a part of our early app testers.',
             "We'd appreciate receiving your feedback as you use Assetlog, either via our in-app Chat, <a href=\"mailto:hello@assetlog.co\">email</a> or Whatsapp.",
             'Your ideas and opinions are highly welcomed and considered.',
             "Below are your login details:<br>
-            <strong>URL:</strong> <a href='https://assetlog.co/login'>https://assetlog.co/#/login</a><br>
             <strong>Email:</strong> $notifiable->email<br>
-            <strong>Temporary Password:</strong> $this->password
+            <strong> Password:</strong> $this->password
             ",
-            "Please kindly change your password to a secure, secret value that is also memorable &#128578;"
+            '<a href="https://assetlog.co/#/login" style="margin:20px 0;text-decoration:none;font-weight:bold;background-color:#2456b4;color:#fff;border-radius:5px;padding:10px;">Login Now</a>',
+            "Please kindly change your password to a secure, secret value that is also memorable &#128578;",
+            "Here is your referral link. Referrals are not compulsory but can help you receive bonuses in the future.<br>
+            <strong>Referral URL:</strong> <a href='https://assetlog.co/#/?ref={$referralCode}'>https://assetlog.co/#/?ref={$referralCode}</a>
+            ",
         ];
 
         return (new MailMessage)
@@ -66,6 +71,15 @@ class SendInvitationNotification extends Notification
             ]);
     }
 
+
+    private function saveReferralCode($user): string
+    {
+        $randomCode = strtoupper(substr(md5(time()), -6));
+        $user->referral_code = $randomCode;
+        $user->save();
+
+        return $randomCode;
+    }
 
     /**
      * Get the array representation of the notification.

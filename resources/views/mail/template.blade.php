@@ -6,7 +6,7 @@
         }
 
         table {
-            width: 30%;
+            width: 50%;
             box-sizing:border-box;
             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol';
             margin:0 auto;
@@ -14,7 +14,7 @@
         }
 
         h1 {
-            color:#3d4852;font-size:18px;font-weight:bold;margin-top:0;text-align:left
+            color:#3d4852;font-size:12px;font-weight:bold;margin-top:0;text-align:left
         }
         
         p {
@@ -42,7 +42,9 @@
 
                 <tr>
                     <td style="max-width:100vw;padding:32px">
-                        <h1>Hi {{ $nameFromEmail }}</h1>
+                        @if(isset($nameFromEmail))
+                            <h1>Hi {{ $nameFromEmail }}</h1>
+                        @endif
 
                         @foreach($contents as $paragraph)
                             <p>{!! $paragraph !!}</p>

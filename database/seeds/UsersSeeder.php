@@ -11,15 +11,10 @@ class UsersSeeder extends Seeder
      */
     public function run()
     {
-        $users = [
-            [
-                "name" => "User 1",
-                "email" => "user1@assetlog.jaapps.com",
-                "password" => bcrypt("password")
-            ],[
+        $users = [[
                 "name" => "Admin",
-                "email" => "admin@assetlog.jaapps.com",
-                "password" => bcrypt("password"),
+                "email" => "admin@assetlog.co",
+                "password" => bcrypt("@ssetl0g"),
                 "is_admin" => 1 // admin user
             ],
         ];
