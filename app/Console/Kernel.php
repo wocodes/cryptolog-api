@@ -5,6 +5,7 @@ namespace App\Console;
 use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
 use App\Actions\Assets\Logs\UpdateAssetLogs;
 use App\Actions\Assets\Logs\UpdateAssetValue;
+use App\Actions\Bot\Trading\Crypto\GetCallToAction;
 use App\Models\User;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -29,16 +30,18 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function() {
-            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
-            foreach ($chunkedCollection as $item) {
-                foreach ($item as $user) {
-                    ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
-                    UpdateAssetLogs::run(['user_id' => $user->id]);
-                    UpdateAssetValue::run(['user_id' => $user->id]);
-                }
-            }
-        })->hourly();
+//        $schedule->call(function() {
+//            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
+//            foreach ($chunkedCollection as $item) {
+//                foreach ($item as $user) {
+//                    ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
+//                    UpdateAssetLogs::run(['user_id' => $user->id]);
+//                    UpdateAssetValue::run(['user_id' => $user->id]);
+//                }
+//            }
+//        })->hourly();
+
+        $schedule->job(new GetCallToAction())->everyFifteenMinutes();
     }
 
     /**
