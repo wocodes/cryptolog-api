@@ -184,6 +184,7 @@ class GetCallToAction extends Action
              array_pop($closingPrices);
              array_pop($openPrices);
             Log::info("Open At: " . end($openPrices));
+            Log::info("Closed At: " . end($closingPrices));
         // }
 
         return [
