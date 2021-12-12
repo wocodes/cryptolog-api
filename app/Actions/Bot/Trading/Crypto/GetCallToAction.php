@@ -10,8 +10,8 @@ use Lorisleiva\Actions\Action;
 
 class GetCallToAction extends Action
 {
-    private ?string $fiveMinsMovingAverage;
-    private ?string $tenMinsMovingAverage;
+    private array $fiveMinsTicker;
+    private array $tenMinsTicker;
     private $api;
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
@@ -76,8 +76,8 @@ class GetCallToAction extends Action
         $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
         $this->availablebalances = $this->api->balances(true);
 
-      //  Cache::forever("last_order", "BUY");
-        
+//        Cache::forever("last_order", "SELL");
+//        dd(1);
         foreach ($this->tradeableSymbols as $theSymbol) {
             // temporary storage for last order
             $this->lastOrderType = Cache::get("last_order");
@@ -92,12 +92,12 @@ class GetCallToAction extends Action
             Log::info("--- Running Bot (Trading $symbol) ---");
     
             // MA (5)
-            $this->fiveMinsMovingAverage = $this->getMovingAverage($symbol, "15m", 5);
+            $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6);
     
             // MA (10)
-            $this->tenMinsMovingAverage = $this->getMovingAverage($symbol, "15m",  10);
+            $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m",  11);
     
-            Log::info("MA(5): $this->fiveMinsMovingAverage -- MA(10): $this->tenMinsMovingAverage");
+            Log::info("MA(5): $this->fiveMinsTicker -- MA(10): $this->tenMinsTicker");
             Log::info("Last Order: ($this->lastOrderType)");
             
             
@@ -105,7 +105,7 @@ class GetCallToAction extends Action
             // dump($this->availablebalances['USDT']['available'] > 10);
             $usdtBalance = $this->availablebalances['USDT']['available']; // $500
             
-            if($this->fiveMinsMovingAverage > $this->tenMinsMovingAverage && $this->lastOrderType == "SELL") {
+            if($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "SELL") {
                 Log::info("Now is time to buy... :-)");
                 $this->lastOrderType = "BUY";
                 Cache::forever("last_order", "BUY");
@@ -114,7 +114,7 @@ class GetCallToAction extends Action
                     $sellPercentage = 100; // recommended is 20 i.e 20%
     
                     // for all assets place a trade of 20% of total USDT value as BUY Order
-    //                $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
+    //                $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
                     $price =(($usdtBalance/100) * $sellPercentage); // gives $100
     
                     $response = PlaceOrder::make([
@@ -134,7 +134,7 @@ class GetCallToAction extends Action
                 } else {
                     Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
                 }
-            } elseif ($this->fiveMinsMovingAverage < $this->tenMinsMovingAverage && $this->lastOrderType == "BUY") {
+            } elseif ($this->fiveMinsTicker['last_tick_open'] < $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "BUY") {
                 Log::info("Now is time to sell... :-(");
                 $this->lastOrderType = "SELL";
                 Cache::forever("last_order", "SELL");
@@ -142,7 +142,7 @@ class GetCallToAction extends Action
                 // $sellPercentage = 20;
 
                 // for all assets place a trade of 20% of total USDT value as BUY Order
-                // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
+                // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
                 // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
 
                 Log::info("Available $symbol qty:", [(string) $this->availablebalances[trim($symbol, 'USDT')]['available']]);
@@ -171,10 +171,17 @@ class GetCallToAction extends Action
     {
         $ticks = $this->api->candlesticks($symbol, $timeFrame, $limit);
         $closingPrices = array_column($ticks, 'close');
+        $openPrices = array_column($ticks, 'open');
+
         // if ($limit === 6) { 
-            // array_pop($closingPrices);
+             array_pop($closingPrices);
+             array_pop($openPrices);
+            Log::info('open at', [end($openPrices)]);
         // }
 
-        return number_format(array_sum($closingPrices) / count($closingPrices), 8);
+        return [
+            "last_tick_open" => end($openPrices),
+            "moving_average" => number_format(array_sum($closingPrices) / count($closingPrices), 8)
+        ];
     }
 }
