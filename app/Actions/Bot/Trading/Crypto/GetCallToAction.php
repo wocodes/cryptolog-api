@@ -176,7 +176,7 @@ class GetCallToAction extends Action
         // if ($limit === 6) { 
              array_pop($closingPrices);
              array_pop($openPrices);
-            Log::info('open at', [end($openPrices)]);
+            Log::info("Open At: " . end($openPrices));
         // }
 
         return [
