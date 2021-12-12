@@ -105,7 +105,10 @@ class GetCallToAction extends Action
             // dump($this->availablebalances['USDT']['available'] > 10);
             $usdtBalance = $this->availablebalances['USDT']['available']; // $500
 
-            if($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "SELL") {
+            if(($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average']) &&
+                ($this->fiveMinsTicker['last_tick_open'] < $this->fiveMinsTicker['last_tick_close']) &&
+                $this->lastOrderType == "SELL"
+            ) {
                 Log::info("Now is time to buy... :-)");
                 $this->lastOrderType = "BUY";
                 Cache::forever("last_order", "BUY");
@@ -134,7 +137,11 @@ class GetCallToAction extends Action
                 } else {
                     Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
                 }
-            } elseif ($this->fiveMinsTicker['last_tick_open'] < $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "BUY") {
+            } elseif (
+                ($this->fiveMinsTicker['last_tick_close'] < $this->fiveMinsTicker['moving_average']) &&
+                ($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['last_tick_close']) &&
+                $this->lastOrderType == "BUY"
+            ) {
                 Log::info("Now is time to sell... :-(");
                 $this->lastOrderType = "SELL";
                 Cache::forever("last_order", "SELL");
@@ -181,6 +188,7 @@ class GetCallToAction extends Action
 
         return [
             "last_tick_open" => end($openPrices),
+            "last_tick_close" => end($closingPrices),
             "moving_average" => number_format(array_sum($closingPrices) / count($closingPrices), 8)
         ];
     }
