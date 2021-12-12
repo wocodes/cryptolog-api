@@ -16,27 +16,12 @@ class GetCallToAction extends Action
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
     private array $availablebalances = [];
+    private array $tradeableSymbols = ['XRP'];
     /**
      * @var \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\HasMany|object|null
      */
     private $userApiKeys;
 
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->initializeUserAndApiKeys();
-
-        $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
-        $this->availablebalances = $this->api->balances(true);
-
-        // temporary storage for last order
-        $this->lastOrderType = Cache::get("last_order");
-        if(!$this->lastOrderType) {
-            Cache::forever("last_order", "SELL");
-        }
-    }
 
     /**
      * Determine if the user is authorized to make this action.
@@ -86,62 +71,81 @@ class GetCallToAction extends Action
      */
     public function handle()
     {
-        $symbol = "BTCUSDT";
+        $this->initializeUserAndApiKeys();
 
+        $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
+        $this->availablebalances = $this->api->balances(true);
 
-        Log::info("");
-        Log::info("--- Running Bot (Trading $symbol) ---");
-
-        // MA (5)
-        $this->fiveMinsMovingAverage = $this->getMovingAverage($symbol, "15m", 6);
-
-        // MA (10)
-        $this->tenMinsMovingAverage = $this->getMovingAverage($symbol, "15m",  11);
-
-        Log::info("MA(5): $this->fiveMinsMovingAverage -- MA(10): $this->tenMinsMovingAverage");
-        Log::info("Last Order: ($this->lastOrderType)");
-        if($this->fiveMinsMovingAverage > $this->tenMinsMovingAverage && $this->lastOrderType == "SELL") {
-            Log::info("Now is time to buy... :-)");
-            $this->lastOrderType = "BUY";
-            Cache::forever("last_order", "BUY");
-
-            if ($this->availablebalances['USDT'] > 10) {
-                $userUsdtBalance = $this->availablebalances['USDT']; // $500
-                $sellPercentage = 100; // recommended is 20 i.e 20%
-
-                // for all assets place a trade of 20% of total USDT value as BUY Order
-//                $quantity = (($userUsdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
-                $price =(($userUsdtBalance/100) * $sellPercentage); // gives $100
-
-                $response = PlaceOrder::make([
-                    "symbol" => $symbol,
-                    "side" => "BUY",
-                    "quoteOrderQty" => (string) $price,
-//            "quantity" => (string) $quantity,
-//            "price" => $assetPrice,
-//            "newClientOrderId" => uniqid(),
-//            "type" => "LIMIT",
-//            "timeInForce" => "GTC",
-                    "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
-                    "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-                ])->run();
-
-                Log::info("Order response:", [$response]);
-            } else {
-                Log::alert("BUY:: Available USDT Balance {$this->availablebalances['USDT']} is low. Can't place an order.");
+      //  Cache::forever("last_order", "BUY");
+        
+        foreach ($this->tradeableSymbols as $theSymbol) {
+            // temporary storage for last order
+            $this->lastOrderType = Cache::get("last_order");
+            if(!$this->lastOrderType) {
+                Cache::forever("last_order", "SELL");
             }
-        } elseif ($this->fiveMinsMovingAverage < $this->tenMinsMovingAverage && $this->lastOrderType == "BUY") {
-            Log::info("Now is time to sell... :-(");
-            $this->lastOrderType = "SELL";
-            Cache::forever("last_order", "SELL");
-
-            if ($this->availablebalances['USDT'] > 10) {
-                $userUsdtBalance = $this->availableUsdt; // $500
-                $sellPercentage = 20;
+            
+            $symbol = "{$theSymbol}USDT";
+    
+    
+            Log::info("");
+            Log::info("--- Running Bot (Trading $symbol) ---");
+    
+            // MA (5)
+            $this->fiveMinsMovingAverage = $this->getMovingAverage($symbol, "15m", 5);
+    
+            // MA (10)
+            $this->tenMinsMovingAverage = $this->getMovingAverage($symbol, "15m",  10);
+    
+            Log::info("MA(5): $this->fiveMinsMovingAverage -- MA(10): $this->tenMinsMovingAverage");
+            Log::info("Last Order: ($this->lastOrderType)");
+            
+            
+            Log::info("Available USDT {$this->availablebalances['USDT']['available']}");
+            // dump($this->availablebalances['USDT']['available'] > 10);
+            $usdtBalance = $this->availablebalances['USDT']['available']; // $500
+            
+            if($this->fiveMinsMovingAverage > $this->tenMinsMovingAverage && $this->lastOrderType == "SELL") {
+                Log::info("Now is time to buy... :-)");
+                $this->lastOrderType = "BUY";
+                Cache::forever("last_order", "BUY");
+                
+                if ($usdtBalance > 10) {
+                    $sellPercentage = 100; // recommended is 20 i.e 20%
+    
+                    // for all assets place a trade of 20% of total USDT value as BUY Order
+    //                $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
+                    $price =(($usdtBalance/100) * $sellPercentage); // gives $100
+    
+                    $response = PlaceOrder::make([
+                        "symbol" => $symbol,
+                        "side" => "BUY",
+                        "quoteOrderQty" => (string) $price,
+    //            "quantity" => (string) $quantity,
+    //            "price" => $assetPrice,
+    //            "newClientOrderId" => uniqid(),
+    //            "type" => "LIMIT",
+    //            "timeInForce" => "GTC",
+                        "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
+                        "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
+                    ])->run();
+    
+                    Log::info("Order response:", [$response]);
+                } else {
+                    Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
+                }
+            } elseif ($this->fiveMinsMovingAverage < $this->tenMinsMovingAverage && $this->lastOrderType == "BUY") {
+                Log::info("Now is time to sell... :-(");
+                $this->lastOrderType = "SELL";
+                Cache::forever("last_order", "SELL");
+    
+                // $sellPercentage = 20;
 
                 // for all assets place a trade of 20% of total USDT value as BUY Order
-                $quantity = (($userUsdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
-                $price =(($userUsdtBalance/100) * $sellPercentage); // gives $100
+                // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsMovingAverage; // gives $100. $100 worth of this asset gives total quantity of 2196000
+                // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
+
+                Log::info("Available $symbol qty:", [(string) $this->availablebalances[trim($symbol, 'USDT')]['available']]);
 
                 $response = PlaceOrder::make([
                     "symbol" => $symbol,
@@ -158,10 +162,8 @@ class GetCallToAction extends Action
 
                 Log::info("Order response:", [$response]);
             } else {
-                Log::alert("SELL: Available USDT Balance {$this->availableUsdt} is low. Can't place an order.");
+                Log::info("Not time to place an order... Still checking");
             }
-        } else {
-            Log::info("Not time to place an order... Still checking");
         }
     }
 
@@ -169,7 +171,9 @@ class GetCallToAction extends Action
     {
         $ticks = $this->api->candlesticks($symbol, $timeFrame, $limit);
         $closingPrices = array_column($ticks, 'close');
-        array_pop($closingPrices);
+        // if ($limit === 6) { 
+            // array_pop($closingPrices);
+        // }
 
         return number_format(array_sum($closingPrices) / count($closingPrices), 8);
     }
