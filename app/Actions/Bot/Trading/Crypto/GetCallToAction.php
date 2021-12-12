@@ -97,14 +97,16 @@ class GetCallToAction extends Action
             // MA (10)
             $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m",  11);
     
-            Log::info("MA(5): $this->fiveMinsTicker -- MA(10): $this->tenMinsTicker");
+            Log::info("MA(5): $this->fiveMinsTicker['moving_average'] -- MA(10): $this->tenMinsTicker['moving_average']");
             Log::info("Last Order: ($this->lastOrderType)");
             
             
             Log::info("Available USDT {$this->availablebalances['USDT']['available']}");
             // dump($this->availablebalances['USDT']['available'] > 10);
             $usdtBalance = $this->availablebalances['USDT']['available']; // $500
-            
+
+            Log::info('asd: ' . $this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "SELL");
+
             if($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average'] && $this->lastOrderType == "SELL") {
                 Log::info("Now is time to buy... :-)");
                 $this->lastOrderType = "BUY";
