@@ -107,6 +107,7 @@ class GetCallToAction extends Action
 
             if(($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['moving_average']) &&
                 ($this->fiveMinsTicker['last_tick_open'] < $this->fiveMinsTicker['last_tick_close']) &&
+                ($this->fiveMinsTicker['moving_average'] < $this->fiveMinsTicker['moving_average']) &&
                 $this->lastOrderType == "SELL"
             ) {
                 Log::info("Now is time to buy... :-)");
@@ -140,6 +141,7 @@ class GetCallToAction extends Action
             } elseif (
                 ($this->fiveMinsTicker['last_tick_close'] < $this->fiveMinsTicker['moving_average']) &&
                 ($this->fiveMinsTicker['last_tick_open'] > $this->fiveMinsTicker['last_tick_close']) &&
+                ($this->fiveMinsTicker['moving_average'] > $this->fiveMinsTicker['moving_average']) &&
                 $this->lastOrderType == "BUY"
             ) {
                 Log::info("Now is time to sell... :-(");
