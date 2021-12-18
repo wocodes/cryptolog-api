@@ -103,8 +103,8 @@ class GetCallToAction extends Action
 //        dump($cachedPrices);
 //        dd(array_column($usdtSymbols, 'symbol'));
 
-        $this->resetAllOrderStatus();
-        dd(1);
+//        $this->resetAllOrderStatus();
+//        dd(1);
 
         foreach ($this->tradeableSymbols as $theSymbol) {
             // temporary storage for last order
