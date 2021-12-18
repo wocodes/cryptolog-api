@@ -77,14 +77,30 @@ class GetCallToAction extends Action
         $this->availablebalances = $this->api->balances(true);
 
 //        $symbols = $this->api->exchangeInfo()['symbols'];
-//
 //        $usdtSymbols = array_filter($symbols, function($symbol) {
-//            return substr($symbol['symbol'], -4, 4) == "USDT" &&
+//            return $symbol['quoteAsset'] == "USDT" &&
 //                substr($symbol['symbol'], -6, 2) != "UP" &&
 ////                substr($symbol['symbol'], -8, 4) != "DOWN" &&
-//                $symbol['status'] == "TRADING";
+//                $symbol['status'] == "TRADING" &&
+//                in_array("MARKET", $symbol['orderTypes']) &&
+//                in_array("SPOT", $symbol['permissions']) &&
+//                !in_array("LEVERAGED", $symbol['permissions']);
 //        });
 //
+//
+//        $prices = Cache::get("market_prices") ?? [];
+//        $count = 0;
+//        foreach($usdtSymbols as $usdtSymbol) {
+//            if(!array_key_exists($usdtSymbol['symbol'], $prices)) {
+//                $prices[$usdtSymbol['symbol']] = $this->api->price($usdtSymbol['symbol']);
+//                Cache::put("market_prices", $prices);
+//                dump($count++);
+//            }
+//        }
+//
+//        $cachedPrices = Cache::get("market_prices");
+//        arsort($cachedPrices, true);
+//        dump($cachedPrices);
 //        dd(array_column($usdtSymbols, 'symbol'));
 
         $this->resetAllOrderStatus();
