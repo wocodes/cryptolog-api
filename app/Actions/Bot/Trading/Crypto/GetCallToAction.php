@@ -76,18 +76,29 @@ class GetCallToAction extends Action
         $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
         $this->availablebalances = $this->api->balances(true);
 
-//        Cache::forever("last_order", "SELL");
-//        dd(1);
+//        $symbols = $this->api->exchangeInfo()['symbols'];
+//
+//        $usdtSymbols = array_filter($symbols, function($symbol) {
+//            return substr($symbol['symbol'], -4, 4) == "USDT" &&
+//                substr($symbol['symbol'], -6, 2) != "UP" &&
+////                substr($symbol['symbol'], -8, 4) != "DOWN" &&
+//                $symbol['status'] == "TRADING";
+//        });
+//
+//        dd(array_column($usdtSymbols, 'symbol'));
+
+        $this->resetAllOrderStatus();
+        dd(1);
+
         foreach ($this->tradeableSymbols as $theSymbol) {
             // temporary storage for last order
-            $this->lastOrderType = Cache::get("last_order");
+            $this->lastOrderType = Cache::get("{$theSymbol}_last_order");
             if(!$this->lastOrderType) {
-                Cache::forever("last_order", "SELL");
+                Cache::forever("{$theSymbol}_last_order", "SELL");
             }
             
             $symbol = "{$theSymbol}USDT";
-    
-    
+
             Log::info("");
             Log::info("--- Running Bot (Trading $symbol) ---");
     
@@ -108,7 +119,7 @@ class GetCallToAction extends Action
             if($hasBuyCondition) {
                 Log::info("Now is time to buy... :-)");
                 $this->lastOrderType = "BUY";
-                Cache::forever("last_order", "BUY");
+                Cache::forever("{$theSymbol}_last_order", "BUY");
                 
                 if ($usdtBalance > 10) {
                     $sellPercentage = 100; // recommended is 20 i.e 20%
@@ -137,7 +148,7 @@ class GetCallToAction extends Action
             } elseif ($hasSellCondition) {
                 Log::info("Now is time to sell... :-(");
                 $this->lastOrderType = "SELL";
-                Cache::forever("last_order", "SELL");
+                Cache::forever("{$theSymbol}_last_order", "SELL");
     
                 // $sellPercentage = 20;
 
@@ -183,6 +194,15 @@ class GetCallToAction extends Action
 //            ($this->fiveMinsTicker['moving_average'] > $this->tenMinsTicker['moving_average']) &&
             $this->lastOrderType == "BUY";
     }
+
+    private function resetAllOrderStatus()
+    {
+        Log::info("Resetting all symbol order to default SELL status.");
+        foreach($this->tradeableSymbols as $symbol) {
+            Cache::forever("{$symbol}_last_order", "SELL");
+        }
+    }
+
 
     private function getMovingAverage(string $symbol, string $timeFrame, int $limit)
     {
