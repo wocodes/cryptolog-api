@@ -16,7 +16,7 @@ class GetCallToAction extends Action
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
     private array $availablebalances = [];
-    private array $tradeableSymbols = ['XRP'];
+    private array $tradeableSymbols = ['XRP', 'SHIB'];
     /**
      * @var \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\HasMany|object|null
      */
@@ -103,7 +103,7 @@ class GetCallToAction extends Action
 //        dump($cachedPrices);
 //        dd(array_column($usdtSymbols, 'symbol'));
 
-//        $this->resetAllOrderStatus();
+        $this->resetAllOrderStatus();
 //        dd(1);
 
         foreach ($this->tradeableSymbols as $theSymbol) {
@@ -214,8 +214,11 @@ class GetCallToAction extends Action
     private function resetAllOrderStatus()
     {
         Log::info("Resetting all symbol order to default SELL status.");
-        foreach($this->tradeableSymbols as $symbol) {
-            Cache::forever("{$symbol}_last_order", "SELL");
+        foreach ($this->tradeableSymbols as $symbol) {
+            if (Cache::missing("{$symbol}_last_order")) {
+                Log::info("{$symbol} doesn't have any trade history. Setting it to sell.");
+                Cache::forever("{$symbol}_last_order", "SELL");
+            }
         }
     }
 
