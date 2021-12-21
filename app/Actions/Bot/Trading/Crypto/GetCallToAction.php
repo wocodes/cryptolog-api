@@ -106,6 +106,14 @@ class GetCallToAction extends Action
         $this->resetAllOrderStatus();
 //        dd(1);
 
+
+        $countOfSymbolsInBuy = 0;
+        foreach ($this->tradeableSymbols as $theSymbol) {
+            if (Cache::get("{$theSymbol}_last_order") == "BUY") {
+                $countOfSymbolsInBuy++;
+            }
+        }
+
         foreach ($this->tradeableSymbols as $theSymbol) {
             // temporary storage for last order
             $this->lastOrderType = Cache::get("{$theSymbol}_last_order");
@@ -137,9 +145,9 @@ class GetCallToAction extends Action
                 $this->lastOrderType = "BUY";
                 Cache::forever("{$theSymbol}_last_order", "BUY");
                 
-                if ($usdtBalance > 10) {
-                    $sellPercentage = 100 / count($this->tradeableSymbols); // recommended is 20 i.e 20%
-    
+                if ($usdtBalance > 10 || $countOfSymbolsInBuy < count($this->tradeableSymbols)) {
+                    $sellPercentage = 100 / count($this->tradeableSymbols) - $countOfSymbolsInBuy; // recommended is 20 i.e 20%
+
                     // for all assets place a trade of 20% of total USDT value as BUY Order
     //                $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
                     $price =(($usdtBalance/100) * $sellPercentage); // gives $100
