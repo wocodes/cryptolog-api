@@ -1,11 +1,13 @@
 <?php
 
+use App\Models\Asset;
+use App\Models\AssetType;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Http;
 
-class AssetsSeeder extends Seeder
+class CryptoAssetsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,8 +16,12 @@ class AssetsSeeder extends Seeder
      */
     public function run()
     {
-        $path = "database/assets.sql";
-        \Illuminate\Support\Facades\DB::unprepared(file_get_contents($path));
+        $cryptoAssetType = AssetType::firstOrCreate(['name' => 'Cryptocurrency']);
+
+        if(!Asset::where('asset_type_id', $cryptoAssetType->id)->exists()) {
+            $path = "database/assets.sql";
+            \Illuminate\Support\Facades\DB::unprepared(file_get_contents($path));
+        }
     }
 
 
