@@ -16,8 +16,8 @@ class GetCallToAction extends Action
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
     private array $availablebalances = [];
-//    private array $tradeableSymbols = ['XRP', 'SHIB'];
-    private array $tradeableSymbols = ['SHIB'];
+    private array $tradeableSymbols = ['XEC', 'SHIB'];
+//    private array $tradeableSymbols = ['SHIB'];
     /**
      * @var \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\HasMany|object|null
      */
@@ -181,13 +181,14 @@ class GetCallToAction extends Action
                 // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
                 // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
 
-                Log::info("Available $symbol qty:", [(string) $this->availablebalances[str_replace('USDT', '', $symbol)]['available']]);
+                $availableSymbolQty = $this->availablebalances[str_replace('USDT', '', $symbol)]['available'];
+                Log::info("Available $symbol qty:", [(string) $availableSymbolQty]);
 
                 $response = PlaceOrder::make([
                     "symbol" => $symbol,
                     "side" => "SELL",
 //                    "quoteOrderQty" => (string) $price,
-            "quantity" => (string) $this->availablebalances[str_replace('USDT', '', $symbol)]['available'],
+                    "quantity" => (string) $availableSymbolQty,
 //            "price" => $assetPrice,
 //            "newClientOrderId" => uniqid(),
 //            "type" => "LIMIT",
