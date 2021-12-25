@@ -16,7 +16,7 @@ class GetCallToAction extends Action
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
     private array $availablebalances = [];
-    private array $tradeableSymbols = ['XEC', 'SHIB'];
+    private array $tradeableSymbols = ['WIN', 'SHIB'];
 //    private array $tradeableSymbols = ['SHIB'];
     /**
      * @var \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\HasMany|object|null
