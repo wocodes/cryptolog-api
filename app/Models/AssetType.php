@@ -15,4 +15,9 @@ class AssetType extends Model
     {
         return $this->belongsToMany(Platform::class);
     }
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
 }

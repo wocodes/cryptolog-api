@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UsersSeeder extends Seeder
@@ -11,17 +12,19 @@ class UsersSeeder extends Seeder
      */
     public function run()
     {
-        $users = [[
+        if (!User::exists()) {
+            $users = [[
                 "name" => "Admin",
                 "email" => "admin@assetlog.co",
                 "password" => bcrypt("@ssetl0g"),
                 "is_admin" => 1 // admin user
             ],
-        ];
+            ];
 
-        foreach ($users as $user)
-        {
-            \App\Models\User::create($user);
+            foreach ($users as $user)
+            {
+                \App\Models\User::create($user);
+            }
         }
     }
 }

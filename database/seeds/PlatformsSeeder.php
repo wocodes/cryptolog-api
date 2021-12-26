@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Platform;
 use Illuminate\Database\Seeder;
 
 class PlatformsSeeder extends Seeder
@@ -11,14 +12,15 @@ class PlatformsSeeder extends Seeder
      */
     public function run()
     {
-        $platforms = [
-            ["name" => "Binance"],
-            ["name" => "Trove"]
-        ];
+        if (!Platform::exists()) {
+            $platforms = [
+                ["name" => "Binance"],
+                ["name" => "Trove"]
+            ];
 
-        foreach ($platforms as $platform)
-        {
-            \App\Models\Platform::create($platform);
+            foreach ($platforms as $platform) {
+                \App\Models\Platform::create($platform);
+            }
         }
     }
 }

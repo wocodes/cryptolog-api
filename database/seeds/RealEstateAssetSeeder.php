@@ -15,7 +15,7 @@ class RealEstateAssetSeeder extends Seeder
     {
         $realEstateAssetType = AssetType::firstOrCreate(['name' => 'Real Estate']);
 
-        if(!Asset::where('asset_type_id', $realEstateAssetType->id)->exists()) {
+        if (!Asset::where('asset_type_id', $realEstateAssetType->id)->exists()) {
             $assets = [
               ["name" => "Vacant Land"],
               ["name" => "Residential"],
@@ -23,7 +23,9 @@ class RealEstateAssetSeeder extends Seeder
               ["name" => "Industrial"],
             ];
 
-            $realEstateAssetType->assets()->create($assets);
+            foreach ($assets as $asset) {
+                $realEstateAssetType->assets()->create($asset);
+            }
         }
     }
 }
