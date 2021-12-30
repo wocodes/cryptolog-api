@@ -28,4 +28,9 @@ class Asset extends Model
     {
         return $this->hasMany(AssetLog::class);
     }
+
+    public function location()
+    {
+        return $this->belongsTo(AssetLocation::class);
+    }
 }

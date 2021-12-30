@@ -3,6 +3,8 @@
 namespace App\Actions\Assets\Logs;
 
 use App\Models\Asset;
+use App\Models\AssetLocation;
+use App\Models\Platform;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
@@ -31,12 +33,17 @@ class CreateLog extends Action
     {
         return [
             "user_id" => "nullable|integer",
-            "platform_id" => "required_without:platform_name|integer",
-            "platform_name" => "required_without:platform_id|string",
+            "platform.id" => "required_without:platform.name|integer",
+            "platform.name" => "required_without:platform.id|string",
+            "location.id" => "required_without:location.name|integer",
+            "location.name" => "required_without:location.id|string",
+            "currency_type" => "required|string",
             "asset_id" => "required|integer",
             "quantity_bought" => "required|string",
             "initial_value" => "required|string",
             "date_of_purchase" => "nullable|date",
+            "detail" => "nullable|string",
+            "first_ever" => "nullable|boolean",
         ];
     }
 
@@ -53,25 +60,65 @@ class CreateLog extends Action
             $this->user = User::findOrFail($this->user_id);
         }
 
-        if ($this->platform_name) {
-            $platform = CreateLog::make(['name' => $this->platform_name]);
+        if (!empty($this->platform['name'])) {
+            $platform = $this->saveNewPlatformData();
+        }
 
-            // attach to asset_type_id
-            $assetTypeId = Asset::findOrFail($this->asset_id)->asset_type->id;
-            $platform->assetTypes()->attach([$assetTypeId]);
+        if (!empty($this->location['name'])) {
+            $location = $this->saveNewLocationData();
         }
 
         // Execute the action.
-        $this->user->assetLogs()->create([
-            "platform_id" => $this->platform_id ?? $platform->id,
+        $logData = [
+            "platform_id" => !empty($this->platform['id']) ? $this->platform['id'] : $platform->id,
             "asset_id" => $this->asset_id,
             "quantity_bought" => $this->quantity_bought,
-            "current_quantity" => $this->current_quantity,
-            "initial_value" => $this->initial_value,
-            "current_value" => $this->initial_value,
-            "date_bought" => $this->date_of_purchase
-        ]);
+            "current_quantity" => $this->current_quantity ?? $this->quantity_bought,
+            "date_bought" => $this->date_of_purchase,
+            "detail" => $this->detail,
+            "asset_location_id" => $this->location['id'] ?: ($this->location['name'] ? $location->id : null)
+        ];
+
+        $usdtSellRate = $this->user()->fiat->usdt_sell_rate ?? 0;
+
+        if ($this->currency_type === 'fiat') {
+            $logData["initial_value"] = $this->initial_value / $usdtSellRate;
+            $logData["current_value"] = $this->initial_value / $usdtSellRate;
+            $logData["initial_value_fiat"] = $this->initial_value;
+            $logData["current_value_fiat"] = $this->initial_value;
+        } else {
+            $logData["initial_value"] = $this->initial_value;
+            $logData["current_value"] = $this->initial_value;
+            $logData["initial_value_fiat"] = $this->initial_value * $usdtSellRate;
+            $logData["current_value_fiat"] = $this->initial_value * $usdtSellRate;
+        }
+
+        $this->user->assetLogs()->create($logData);
+
+        if($this->first_ever) {
+            $this->user()->finished_setup = 1;
+            $this->user()->save();
+        }
 
         return response()->json(["message" => 'success'], 201);
+    }
+
+    private function saveNewPlatformData(): Platform
+    {
+        $platform = Platform::firstOrCreate(['name' => $this->platform['name']]);
+
+        // attach to asset_type_id
+        $assetTypeId = Asset::findOrFail($this->asset_id)->assetType->id;
+        $platform->assetTypes()->attach([$assetTypeId]);
+
+        return $platform;
+    }
+
+    private function saveNewLocationData(): AssetLocation
+    {
+        return AssetLocation::firstOrCreate(
+            ['name' => $this->location['name']],
+            ['interest_rate' => $this->interest_rate]
+        );
     }
 }

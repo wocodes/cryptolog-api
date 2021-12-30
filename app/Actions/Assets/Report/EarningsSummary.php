@@ -3,8 +3,10 @@
 namespace App\Actions\Assets\Report;
 
 use App\Models\Asset;
+use App\Models\AssetType;
 use App\Traits\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
 class EarningsSummary extends Action
@@ -36,10 +38,18 @@ class EarningsSummary extends Action
      */
     public function handle()
     {
+        $assets = Asset::query();
+
+        if ($this->asset_type) {
+            $assets = $assets->whereHas('assetType', function ($query) {
+                $query->where('name', AssetType::ASSET_NAMES[$this->asset_type]);
+            });
+        }
+
         $data = [];
-        $assets = Asset::whereHas("logs", function ($query) {
-            $query->where('user_id', $this->user()->id)
-                ->where('current_value', '>', 0);
+        $assets = $assets->whereHas("logs", function ($query) {
+            $query->where('user_id', $this->user()->id);
+//                ->where('current_value', '>', 0);
         })->select('id', 'name', 'symbol', 'icon')->get()->toArray();
 
         foreach ($assets as $asset) {

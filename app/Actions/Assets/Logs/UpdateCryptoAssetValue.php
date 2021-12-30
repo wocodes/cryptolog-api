@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Lorisleiva\Actions\Action;
 
-class UpdateAssetValue extends Action implements ShouldQueue
+class UpdateCryptoAssetValue extends Action implements ShouldQueue
 {
     use Queueable;
 
@@ -55,22 +55,25 @@ class UpdateAssetValue extends Action implements ShouldQueue
             $this->user = User::findOrFail($this->user_id);
         }
 
-        Log::info("Updating Asset Values for User {$this->user->id}");
+        Log::info("Updating Crypto Asset Values for User {$this->user->id}");
 
         $this->currentAssetData = GetAssets24hTicker::run(['user_id' => $this->user->id]);
 
-        $this->updateLogs();
+        $this->updateCryptoLogs();
     }
 
 
-    private function updateLogs()
+    private function updateCryptoLogs()
     {
         foreach($this->currentAssetData as $datum)
         {
             $query = $this->user->assetLogs();
 
             $query->whereHas('asset', function ($query) use ($datum) {
-                    $query->where('symbol', $datum["symbol"]);
+                    $query->where('symbol', $datum["symbol"])
+                            ->whereHas('assetType', function ($query) {
+                                $query->where('name', 'Cryptocurrency');
+                            });
                 })->where('is_sold', 0)->chunkById(100, function ($chunkedLogs) use ($datum) {
                     foreach ($chunkedLogs as $chunkedLog) {
                         $usdtSellRate = $chunkedLog->user->fiat->usdt_sell_rate ?? 0;

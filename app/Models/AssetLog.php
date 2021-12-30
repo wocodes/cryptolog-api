@@ -10,7 +10,8 @@ class AssetLog extends Model
     protected $fillable = [
         "platform_id", "asset_id", "quantity_bought", "initial_value", "initial_value_fiat",
         "current_value", "current_value_fiat", "profit_loss", "24_hr_change", "date_bought",
-        "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_fiat", "is_sold", "current_quantity"
+        "roi", "daily_roi", "current_price", "last_updated_at", "profit_loss_fiat", "is_sold",
+        "current_quantity", "asset_location_id"
     ];
 
 
