@@ -9,7 +9,7 @@ Route::middleware('auth:api')->prefix("logs")->group(function ($router) {
     Route::post('/', '\App\Actions\Assets\Logs\CreateLog');
     $router->get('/update', function () {
         (new UpdateRealEstateAssetValue)->handle();
-        (new UpdateCryptoAssetValue)->handle();
+//        (new UpdateCryptoAssetValue)->handle();
     });
     $router->post('/{id}/withdrawal', '\App\Actions\Assets\Logs\CreateWithdrawal');
 });
