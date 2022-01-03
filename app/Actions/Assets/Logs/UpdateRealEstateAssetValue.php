@@ -4,6 +4,7 @@ namespace App\Actions\Assets\Logs;
 
 use App\Actions\Binance\GetAssets24hTicker;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -74,9 +75,12 @@ class UpdateRealEstateAssetValue extends Action implements ShouldQueue
                     $usdtSellRate = $chunkedLog->user->fiat->usdt_sell_rate ?? 0;
 
                     $yearlyInterestRate = $chunkedLog->location->interest_rate;
+                    $daysDifference = Carbon::today()->diffInDays($chunkedLog->date_bought);
                     $dailyInterestRate = $chunkedLog->location->interest_rate / 365;
+                    $interestAccrued = ($chunkedLog->current_value_fiat / 100) * $dailyInterestRate;
+                    $totalCurrentValuePlusInterest = $chunkedLog->initial_value_fiat + ($interestAccrued * $daysDifference);
 
-                    $chunkedLog->current_value_fiat += ($chunkedLog->current_value_fiat / 100) * $dailyInterestRate;
+                    $chunkedLog->current_value_fiat = $totalCurrentValuePlusInterest;
                     $chunkedLog->current_value = $chunkedLog->current_value_fiat / $usdtSellRate ?? 0;
                     $chunkedLog->initial_value = $chunkedLog->initial_value_fiat / $usdtSellRate ?? 0;
                     $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
