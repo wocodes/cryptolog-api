@@ -80,15 +80,7 @@ class UpdateRealEstateAssetValue extends Action implements ShouldQueue
                     $interestAccrued = ($chunkedLog->current_value_fiat / 100) * $dailyInterestRate;
                     $totalCurrentValuePlusInterest = $chunkedLog->initial_value_fiat + ($interestAccrued * $daysDifference);
 
-                    Log::info('daily', [$dailyInterestRate]);
-                    Log::info('accrued', [$interestAccrued]);
-                    Log::info('total', [$totalCurrentValuePlusInterest]);
-
-
                     $chunkedLog->current_value_fiat = $totalCurrentValuePlusInterest;
-
-                    Log::info('current', [$chunkedLog->current_value_fiat]);
-
                     $chunkedLog->current_value = $chunkedLog->current_value_fiat / $usdtSellRate ?? 0;
                     $chunkedLog->initial_value = $chunkedLog->initial_value_fiat / $usdtSellRate ?? 0;
                     $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
