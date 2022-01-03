@@ -25,7 +25,7 @@ class AssetLog extends Model
 
     public function location()
     {
-        return $this->belongsTo(AssetLocation::class);
+        return $this->belongsTo(AssetLocation::class, 'asset_location_id');
     }
 
     public function platform()
