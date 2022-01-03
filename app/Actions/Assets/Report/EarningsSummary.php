@@ -40,7 +40,7 @@ class EarningsSummary extends Action
     {
         $assets = Asset::query();
 
-        if ($this->asset_type) {
+        if ($this->asset_type && $this->asset_type !== 'All') {
             $assets = $assets->whereHas('assetType', function ($query) {
                 $query->where('name', AssetType::ASSET_NAMES[$this->asset_type]);
             });
@@ -58,7 +58,7 @@ class EarningsSummary extends Action
             $data[] = [
                 "name" => $asset['name'],
                 "icon" => $asset['icon'] ?? null,
-                "symbol" => $asset['symbol'],
+                "symbol" => $asset['symbol'] ?? $asset['name'],
                 "qty" => $log->sum('current_quantity'),
                 "current_value" => $log->sum('current_value'),
                 "current_value_fiat" => $log->sum('current_value_fiat'),

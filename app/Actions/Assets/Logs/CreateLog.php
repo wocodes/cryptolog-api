@@ -33,10 +33,14 @@ class CreateLog extends Action
     {
         return [
             "user_id" => "nullable|integer",
-            "platform.id" => "required_without:platform.name|integer",
-            "platform.name" => "required_without:platform.id|string",
-            "location.id" => "required_without:location.name|integer",
-            "location.name" => "required_without:location.id|string",
+//            "platform.id" => "required_without:platform.name|integer",
+            "platform.id" => "nullable|integer",
+//            "platform.name" => "required_without:platform.id|string",
+            "platform.name" => "nullable|string",
+//            "location.id" => "required_without:location.name|integer",
+            "location.id" => "nullable|integer",
+//            "location.name" => "required_without:location.id|string",
+            "location.name" => "nullable|string",
             "currency_type" => "required|string",
             "asset_id" => "required|integer",
             "quantity_bought" => "required|string",
@@ -76,7 +80,7 @@ class CreateLog extends Action
             "current_quantity" => $this->current_quantity ?? $this->quantity_bought,
             "date_bought" => $this->date_of_purchase,
             "detail" => $this->detail,
-            "asset_location_id" => $this->location['id'] ?: ($this->location['name'] ? $location->id : null)
+            "asset_location_id" => !empty($this->location['id']) ? $this->location['id'] : (!empty($this->location['name']) ? $location->id : null)
         ];
 
         $usdtSellRate = $this->user()->fiat->usdt_sell_rate ?? 0;
