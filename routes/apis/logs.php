@@ -8,8 +8,8 @@ Route::middleware('auth:api')->prefix("logs")->group(function ($router) {
     Route::get('/', '\App\Actions\Assets\Logs\GetLogs');
     Route::post('/', '\App\Actions\Assets\Logs\CreateLog');
     $router->get('/update', function () {
-        (new UpdateCryptoAssetValue)->handle();
         (new UpdateRealEstateAssetValue)->handle();
+        (new UpdateCryptoAssetValue)->handle();
     });
     $router->post('/{id}/withdrawal', '\App\Actions\Assets\Logs\CreateWithdrawal');
 });
