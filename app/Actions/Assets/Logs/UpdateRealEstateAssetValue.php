@@ -74,6 +74,10 @@ class UpdateRealEstateAssetValue extends Action implements ShouldQueue
                 foreach ($chunkedLogs as $chunkedLog) {
                     $usdtSellRate = $chunkedLog->user->fiat->usdt_sell_rate ?? 0;
 
+                    Log::info('log', [$chunkedLog]);
+                    Log::info('log loc', [$chunkedLog->location]);
+                    Log::info('loc inte', [$chunkedLog->location->interest_rate]);
+
                     $yearlyInterestRate = $chunkedLog->location->interest_rate;
                     $daysDifference = Carbon::today()->diffInDays($chunkedLog->date_bought);
                     $dailyInterestRate = $chunkedLog->location->interest_rate / 365;
