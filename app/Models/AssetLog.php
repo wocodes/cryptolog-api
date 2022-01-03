@@ -23,6 +23,11 @@ class AssetLog extends Model
         return $this->belongsTo(Asset::class);
     }
 
+    public function location()
+    {
+        return $this->belongsTo(AssetLocation::class);
+    }
+
     public function platform()
     {
         return $this->belongsTo(Platform::class);
