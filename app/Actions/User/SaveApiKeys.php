@@ -3,7 +3,7 @@
 namespace App\Actions\User;
 
 use App\Actions\Assets\Logs\ImportNewAssetsFromBinance;
-use App\Actions\Assets\Logs\UpdateAssetValue;
+use App\Actions\Assets\Logs\UpdateRealEstateAssetValue;
 use App\Events\ApiKeysSaved;
 use App\Models\Platform;
 use App\Traits\JsonResponse;

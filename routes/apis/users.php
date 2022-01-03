@@ -8,7 +8,7 @@ Route::prefix("user")->group(function() {
 
     Route::middleware(['auth:api'])->group(function () {
         Route::get('/', '\App\Actions\User\GetUser');
-        Route::get('/dashboard/stats', '\App\Actions\User\Dashboard\Stats');
+        Route::get('/dashboard/stats/{asset_type?}', '\App\Actions\User\Dashboard\Stats');
         Route::get('/metas', '\App\Actions\User\Metas\Get');
         Route::post('/metas', '\App\Actions\User\Metas\Save');
 

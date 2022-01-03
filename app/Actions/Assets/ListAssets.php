@@ -44,7 +44,7 @@ class ListAssets extends Action
             $assets =  $assets->where('asset_type_id', $this->asset_type_id);
         }
 
-        return $assets->get();
+        return $assets->with('location')->get();
 
     }
 

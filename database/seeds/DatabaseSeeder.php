@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
          $this->call(ExternalApiSeeder::class);
          $this->call(AssetTypesSeeder::class);
          $this->call(FiatSeeder::class);
-         $this->call(AssetsSeeder::class);
+         $this->call(CryptoAssetsSeeder::class);
+         $this->call(RealEstateAssetSeeder::class);
 //         $this->call(AssetLogsSeeder::class);
     }
 }

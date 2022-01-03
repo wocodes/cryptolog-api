@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AssetType;
 use Illuminate\Database\Seeder;
 
 class AssetTypesSeeder extends Seeder
@@ -11,24 +12,25 @@ class AssetTypesSeeder extends Seeder
      */
     public function run()
     {
-        $activeCryptoApi = \App\Models\ExternalApi::whereJsonContains('meta->tags', "cryptocurrency")
-            ->where('active', 1)
-            ->first();
+        if (!AssetType::exists()) {
+            $activeCryptoApi = \App\Models\ExternalApi::whereJsonContains('meta->tags', "cryptocurrency")
+                ->where('active', 1)
+                ->first();
 
-        $activeStockApi = \App\Models\ExternalApi::whereJsonContains('meta->tags', "stock")
-            ->where('active', 1)
-            ->first();
+            $activeStockApi = \App\Models\ExternalApi::whereJsonContains('meta->tags', "stock")
+                ->where('active', 1)
+                ->first();
 
-        $types = [
-            ["name" => "Cryptocurrency", "external_api_id" => $activeCryptoApi->id],
-            ["name" => "Stock", "external_api_id" => $activeStockApi->id]
-        ];
+            $types = [
+                ["name" => "Cryptocurrency", "external_api_id" => $activeCryptoApi->id],
+                ["name" => "Stock", "external_api_id" => $activeStockApi->id]
+            ];
 
-        foreach ($types as $type)
-        {
-            $assetType = \App\Models\AssetType::create($type);
+            foreach ($types as $type) {
+                $assetType = \App\Models\AssetType::create($type);
 
-            $assetType->platforms()->attach([1]);
+                $assetType->platforms()->attach([1]);
+            }
         }
     }
 }
