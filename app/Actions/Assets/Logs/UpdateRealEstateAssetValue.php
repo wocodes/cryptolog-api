@@ -77,7 +77,7 @@ class UpdateRealEstateAssetValue extends Action implements ShouldQueue
                     $yearlyInterestRate = $chunkedLog->location->interest_rate;
                     $daysDifference = Carbon::today()->diffInDays($chunkedLog->date_bought);
                     $dailyInterestRate = $chunkedLog->location->interest_rate / 365;
-                    $interestAccrued = (1 + ($chunkedLog->current_value_fiat / 100)) * $chunkedLog->initial_value_fiat;
+                    $interestAccrued = (1 + ($dailyInterestRate/100)) * $chunkedLog->initial_value_fiat;
                     $dailyDifferenceAmount = $interestAccrued - $chunkedLog->initial_value_fiat;
                     $totalCurrentValuePlusInterest = $chunkedLog->initial_value_fiat + ($dailyDifferenceAmount * $daysDifference);
 
