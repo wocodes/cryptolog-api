@@ -86,10 +86,10 @@ class UpdateRealEstateAssetValue extends Action implements ShouldQueue
                     $chunkedLog->initial_value = $chunkedLog->initial_value_fiat / $usdtSellRate ?? 0;
                     $chunkedLog->profit_loss = $chunkedLog->current_value - $chunkedLog->initial_value;
                     $chunkedLog->{'24_hr_change'} = $dailyInterestRate;
-                    $chunkedLog->roi = $chunkedLog->initial_value > 0 ? $chunkedLog->profit_loss / $chunkedLog->initial_value : 0;
-                    $chunkedLog->daily_roi = $chunkedLog->roi > 0 ? $chunkedLog->roi / 3 : 0;
+                    $chunkedLog->roi = $dailyInterestRate * $daysDifference;
+                    $chunkedLog->daily_roi = $dailyInterestRate;
                     $chunkedLog->current_price = $chunkedLog->current_value_fiat;
-                    $chunkedLog->last_updated_at = now();
+                    $chunkedLog->last_updated_at = now()->addHour();
                     $chunkedLog->profit_loss_fiat = $chunkedLog->profit_loss * $usdtSellRate ?? 0;
 
                     if($chunkedLog->initial_value > 1 && $chunkedLog->current_value < 1 ) {

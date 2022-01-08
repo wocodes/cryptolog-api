@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AssetType extends Model
 {
     public const ASSET_NAMES = [
-        'Cryptocurrency' => "Cryptocurrency",
+        'Digital Currency' => "Cryptocurrency",
         'Real Estate' => "Real Estate",
         'Stock' => "Stock"
     ];

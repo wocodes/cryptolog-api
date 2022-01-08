@@ -61,7 +61,7 @@ class Login extends Action
             return response()->json($response, 400);
         }
 
-        $user = $user->load('fiat:id,country_code,symbol,usdt_sell_rate,usdt_buy_rate');
+        $user = $user->load('fiat:id,country_code,symbol,usdt_sell_rate,usdt_buy_rate,short_symbol');
         $user->token = $user->createToken('user-token')->accessToken;
 
         $user = $user->only('id', 'name', 'email', 'token', 'is_admin', 'finished_setup', 'fiat_id', 'fiat', 'has_api_keys');
