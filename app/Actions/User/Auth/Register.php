@@ -3,7 +3,10 @@
 namespace App\Actions\User\Auth;
 
 use App\Models\User;
+use App\Notifications\SendVerificationEmail;
 use App\Traits\JsonResponse;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Action;
 
 class Register extends Action
@@ -27,7 +30,8 @@ class Register extends Action
     {
         return [
             "name" => "required|string",
-            "username" => "required|string|unique:users,email",
+            "username" => "required|email:rfc,dns",
+            'ref' => 'nullable|string',
             "password" => "required|string|min:5"
         ];
     }
@@ -36,17 +40,41 @@ class Register extends Action
      * Execute the action and return a result.
      *
      * @return mixed
+     * @throws \Exception
      */
     public function handle()
     {
-        $data = [
-            'name' => $this->name,
-            'email' => $this->username,
-            'password' => bcrypt($this->password)
-        ];
+        $userExists = User::whereEmail($this->username)->exists();
 
-        User::create($data);
+        if ($userExists) {
+            return JsonResponse::error([], "Account already exists. Please login.");
+        }
 
-        return JsonResponse::success([], "Successfully registered.");
+        try {
+            $data = [
+                'name' => $this->name,
+                'email' => $this->username,
+                'password' => bcrypt($this->password)
+            ];
+
+            if ($this->ref) {
+                $data['referred_by'] = User::where('referral_code', $this->ref)->first()->id;
+            }
+
+            $registered = User::create($data);
+
+            if ($registered) {
+                $registered->notifyNow(new SendVerificationEmail($this->username));
+
+                return JsonResponse::success([], "Successfully registered.");
+            }
+        } catch (QueryException $exception) {
+            throw new \Exception("Something went wrong.");
+        } catch (\Throwable $throwable) {
+            throw new \Exception($throwable->getMessage());
+        }
+
+
+        return JsonResponse::error([], "Couldn't register at this moment. Pls try again");
     }
 }
