@@ -31,30 +31,30 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function() {
-            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
-            foreach ($chunkedCollection as $item) {
-                foreach ($item as $user) {
-                    ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
-                    UpdateAssetLogs::run(['user_id' => $user->id]);
-                    UpdateCryptoAssetValue::run(['user_id' => $user->id]);
-                }
-            }
-        })->hourly();
+//        $schedule->call(function() {
+//            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
+//            foreach ($chunkedCollection as $item) {
+//                foreach ($item as $user) {
+//                    ImportNewAssetsFromBinance::run(['user_id' => $user->id]);
+//                    UpdateAssetLogs::run(['user_id' => $user->id]);
+//                    UpdateCryptoAssetValue::run(['user_id' => $user->id]);
+//                }
+//            }
+//        })->hourly();
+//
+//
+//        $schedule->call(function() {
+//            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
+//            foreach ($chunkedCollection as $item) {
+//                foreach ($item as $user) {
+//                    UpdateRealEstateAssetValue::run(['user_id' => $user->id]);
+//                }
+//            }
+//        })->daily();
 
 
-        $schedule->call(function() {
-            $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
-            foreach ($chunkedCollection as $item) {
-                foreach ($item as $user) {
-                    UpdateRealEstateAssetValue::run(['user_id' => $user->id]);
-                }
-            }
-        })->daily();
 
-
-
-//        $schedule->job(new GetCallToAction())->everyFiveMinutes();
+        $schedule->job(new GetCallToAction())->everyMinute();
     }
 
     /**

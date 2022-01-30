@@ -14,6 +14,10 @@ Route::prefix("user")->group(function() {
 
         Route::put('/', '\App\Actions\User\Update');
         Route::post('/api-keys', '\App\Actions\User\SaveApiKeys');
+
+        // wallet transactions
+        Route::get('wallet', '\App\Actions\User\Wallet\GetWallet');
+        Route::post('wallet/credit', '\App\Actions\User\Wallet\CreditWallet');
     });
 });
 

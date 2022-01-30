@@ -15,7 +15,7 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->string('transaction_reference');
+            $table->string('transaction_reference')->unique();
             $table->morphs('item');
             $table->text('description');
             $table->double('value');

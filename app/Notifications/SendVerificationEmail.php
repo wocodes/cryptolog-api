@@ -12,16 +12,14 @@ class SendVerificationEmail extends Notification
 {
     use Queueable;
 
-    private string $email;
-
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($email)
+    public function __construct()
     {
-        $this->email = $email;
+
     }
 
     /**
@@ -46,7 +44,7 @@ class SendVerificationEmail extends Notification
         $referralCode = $this->saveReferralCode($notifiable);
         $verificationCode = $this->saveVerificationCode($notifiable);
 
-        $nameFromEmail = explode('@', $this->email)[0];
+        $nameFromEmail = explode('@', $notifiable->email)[0];
         $contents = [
             'Welcome to Assetlog! We\'re excited to have you on board.',
             'Kindly verify your account by clicking the button below.',

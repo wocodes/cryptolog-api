@@ -2,6 +2,8 @@
 
 namespace App\Actions\User\Auth;
 
+use App\Events\RegistrationSuccessful;
+use App\Listeners\AcknowledgeRegistration;
 use App\Models\User;
 use App\Notifications\SendVerificationEmail;
 use App\Traits\JsonResponse;
@@ -64,7 +66,7 @@ class Register extends Action
             $registered = User::create($data);
 
             if ($registered) {
-                $registered->notifyNow(new SendVerificationEmail($this->username));
+                RegistrationSuccessful::dispatch($registered);
 
                 return JsonResponse::success([], "Successfully registered.");
             }

@@ -15,13 +15,15 @@ class GetCallToAction extends Action
     private $api;
     private $lastOrderType; // temporary storage for last order
     private ?User $user = null;
-    private array $availablebalances = [];
-//    private array $tradeableSymbols = ['WIN', 'SHIB'];
-    private array $tradeableSymbols = ['SHIB'];
+    private array $availableBalances = [];
+    private array $tradeableSymbols;
+    private int $minimumUsdtBalance = 10;
     /**
      * @var \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Relations\HasMany|object|null
      */
     private $userApiKeys;
+
+    private int $buyPercentage;
 
 
     /**
@@ -44,27 +46,6 @@ class GetCallToAction extends Action
         return [];
     }
 
-
-    private function initializeUserAndApiKeys()
-    {
-        $this->user = $this->user();
-
-        if (!$this->user && $this->user_id) {
-            $this->user = User::findOrFail($this->user_id);
-        }
-
-        $this->user = User::where('is_admin', 0)->where('email', 'william.odiomonafe@gmail.com')->firstOrFail();
-        Log::info("Gotten User", [$this->user]);
-
-        $this->userApiKeys = $this->user->apiKeys()->first();
-        if (!$this->userApiKeys) {
-            Log::info("User has no api keys set. Can't import");
-            return false;
-        }
-    }
-
-
-
     /**
      * Execute the action and return a result.
      *
@@ -72,137 +53,176 @@ class GetCallToAction extends Action
      */
     public function handle()
     {
-        $this->initializeUserAndApiKeys();
+        $aiTradeSubscribedUsers = User::whereHas('botTradeAssets', function ($query) {
+           $query->where('is_active', 1);
+        })->get();
+        
+        foreach ($aiTradeSubscribedUsers as $user) {
+            $this->tradeableSymbols = $user->botTradeAssets()->where('is_active', 1)
+                ->with('asset:id,name')
+                ->get()
+                ->pluck('asset.name');
 
-        $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
-        $this->availablebalances = $this->api->balances(true);
+            // check if should auto trade or manual
+            $shouldAutoBotTrade = $user->botTradeAssets()->where('is_active', 1)->where('mode', 'auto')->exists();
 
-//        $symbols = $this->api->exchangeInfo()['symbols'];
-//        $usdtSymbols = array_filter($symbols, function($symbol) {
-//            return $symbol['quoteAsset'] == "USDT" &&
-//                substr($symbol['symbol'], -6, 2) != "UP" &&
-////                substr($symbol['symbol'], -8, 4) != "DOWN" &&
-//                $symbol['status'] == "TRADING" &&
-//                in_array("MARKET", $symbol['orderTypes']) &&
-//                in_array("SPOT", $symbol['permissions']) &&
-//                !in_array("LEVERAGED", $symbol['permissions']);
-//        });
-//
-//
-//        $prices = Cache::get("market_prices") ?? [];
-//        $count = 0;
-//        foreach($usdtSymbols as $usdtSymbol) {
-//            if(!array_key_exists($usdtSymbol['symbol'], $prices)) {
-//                $prices[$usdtSymbol['symbol']] = $this->api->price($usdtSymbol['symbol']);
-//                Cache::put("market_prices", $prices);
-//                dump($count++);
-//            }
-//        }
-//
-//        $cachedPrices = Cache::get("market_prices");
-//        arsort($cachedPrices, true);
-//        dump($cachedPrices);
-//        dd(array_column($usdtSymbols, 'symbol'));
+            $this->initializeUserAndApiKeys($user, $shouldAutoBotTrade);
+            $this->availableBalances = $this->api->balances(true);
 
-        $this->resetAllOrderStatus();
-//        dd(1);
+            $this->resetAllOrderStatus();
+            $countOfSymbolsInBuy = $this->countSymbolsInBuy($user);
 
+            foreach ($this->tradeableSymbols as $theSymbol) {
+                $this->setInitialTradeOrder($user, $theSymbol);
 
-        $countOfSymbolsInBuy = 0;
-        foreach ($this->tradeableSymbols as $theSymbol) {
-            if (Cache::get("{$theSymbol}_last_order") == "BUY") {
-                $countOfSymbolsInBuy++;
+                $symbol = "{$theSymbol}USDT";
+                Log::info("");
+                Log::info("--- Running Bot (Trading $symbol) ---");
+
+                $this->getMovingAverages($symbol);
+
+                Log::info("Last Order: ($this->lastOrderType)");
+                Log::info("Available USDT {$this->availableBalances['USDT']['available']}");
+                $usdtBalance = $this->availableBalances['USDT']['available']; // $500
+
+                if ($this->hasBuyCondition()) {
+
+                    $this->cacheTriggeredOrder($user, $theSymbol, "BUY");
+                    $this->placeBuyOrder($usdtBalance, $countOfSymbolsInBuy, $symbol);
+
+                } elseif ($this->hasSellCondition()) {
+
+                    $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
+                    $this->placeSellOrder($usdtBalance, $countOfSymbolsInBuy, $symbol);
+
+                } else {
+                    Log::info("Not time to place an order... Still checking");
+                }
             }
         }
+    }
 
-        foreach ($this->tradeableSymbols as $theSymbol) {
-            // temporary storage for last order
-            $this->lastOrderType = Cache::get("{$theSymbol}_last_order");
-            if (!$this->lastOrderType) {
-                Cache::forever("{$theSymbol}_last_order", "SELL");
-            }
-            
-            $symbol = "{$theSymbol}USDT";
 
-            Log::info("");
-            Log::info("--- Running Bot (Trading $symbol) ---");
-    
-            // MA (5)
-            $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6);
-            // MA (10)
-            $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m",  11);
-    
-            Log::info("MA(5): {$this->fiveMinsTicker['moving_average']} -- MA(10): {$this->tenMinsTicker['moving_average']}");
-            Log::info("Last Order: ($this->lastOrderType)");
-            
-            
-            Log::info("Available USDT {$this->availablebalances['USDT']['available']}");
-            $usdtBalance = $this->availablebalances['USDT']['available']; // $500
-            $hasBuyCondition = $this->hasBuyCondition();
-            $hasSellCondition = $this->hasSellCondition();
 
-            if($hasBuyCondition) {
-                Log::info("Now is time to buy... :-)");
-                $this->lastOrderType = "BUY";
-                Cache::forever("{$theSymbol}_last_order", "BUY");
-                
-                if ($usdtBalance > 10 || $countOfSymbolsInBuy < count($this->tradeableSymbols)) {
-                    $sellPercentage = 100 / count($this->tradeableSymbols) - $countOfSymbolsInBuy; // recommended is 20 i.e 20%
+    private function placeBuyOrder($usdtBalance, $countOfSymbolsInBuy, $symbol)
+    {
+        if ($usdtBalance > $this->minimumUsdtBalance || $countOfSymbolsInBuy < count($this->tradeableSymbols)) {
+            $this->buyPercentage = 100 / count($this->tradeableSymbols) - $countOfSymbolsInBuy; // recommended is 20 i.e 20%
 
-                    // for all assets place a trade of 20% of total USDT value as BUY Order
-    //                $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
-                    $price =(($usdtBalance/100) * $sellPercentage); // gives $100
-    
-                    $response = PlaceOrder::make([
-                        "symbol" => $symbol,
-                        "side" => "BUY",
-                        "quoteOrderQty" => (string) $price,
-    //            "quantity" => (string) $quantity,
-    //            "price" => $assetPrice,
-    //            "newClientOrderId" => uniqid(),
-    //            "type" => "LIMIT",
-    //            "timeInForce" => "GTC",
-                        "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
-                        "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-                    ])->run();
-    
-                    Log::info("Order response:", [$response]);
-                } else {
-                    Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
-                }
-            } elseif ($hasSellCondition) {
-                Log::info("Now is time to sell... :-(");
-                $this->lastOrderType = "SELL";
-                Cache::forever("{$theSymbol}_last_order", "SELL");
-    
-                // $sellPercentage = 20;
+            // for all assets place a trade of 20% of total USDT value as BUY Order
+//                        $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
+            $price = (($usdtBalance/100) * $this->buyPercentage); // gives $100
 
-                // for all assets place a trade of 20% of total USDT value as BUY Order
-                // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
-                // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
+            $response = PlaceOrder::make([
+                "symbol" => $symbol,
+                "side" => "BUY",
+                "quoteOrderQty" => (string) $price,
+                //            "quantity" => (string) $quantity,
+                //            "price" => $assetPrice,
+                //            "newClientOrderId" => uniqid(),
+                //            "type" => "LIMIT",
+                //            "timeInForce" => "GTC",
+                "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
+                "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
+            ])->run();
 
-                $availableSymbolQty = $this->availablebalances[str_replace('USDT', '', $symbol)]['available'];
-                Log::info("Available $symbol qty:", [(string) $availableSymbolQty]);
+            Log::info("Order response:", [$response]);
+        } else {
+            Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
+        }
+    }
 
-                $response = PlaceOrder::make([
-                    "symbol" => $symbol,
-                    "side" => "SELL",
+
+
+    public function placeSellOrder($usdtBalance, $countOfSymbolsInBuy, $symbol)
+    {
+        // $sellPercentage = 20;
+
+        // for all assets place a trade of 20% of total USDT value as BUY Order
+        // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
+        // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
+
+        $availableSymbolQty = $this->availableBalances[str_replace('USDT', '', $symbol)]['available'];
+        Log::info("Available $symbol qty:", [(string) $availableSymbolQty]);
+
+        $response = PlaceOrder::make([
+            "symbol" => $symbol,
+            "side" => "SELL",
 //                    "quoteOrderQty" => (string) $price,
-                    "quantity" => (string) $availableSymbolQty,
+            "quantity" => (string) $availableSymbolQty,
 //            "price" => $assetPrice,
 //            "newClientOrderId" => uniqid(),
 //            "type" => "LIMIT",
 //            "timeInForce" => "GTC",
-                    "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
-                    "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-                ])->run();
+            "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
+            "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
+        ])->run();
 
-                Log::info("Order response:", [$response]);
-            } else {
-                Log::info("Not time to place an order... Still checking");
+        Log::info("Order response:", [$response]);
+    }
+
+
+
+    private function initializeUserAndApiKeys(User $user, bool $autoTradeMode)
+    {
+        $this->user = $user;
+        Log::info("Gotten User", [$this->user]);
+
+        $adminApiKeys = User::where('email', 'william.odiomonafe@gmail.com')->first()->apiKeys()->first();
+        $this->userApiKeys = $autoTradeMode ? $adminApiKeys : $this->user->apiKeys()->first();
+
+        if (!$this->userApiKeys) {
+            Log::info("User: {$this->user->email} ({$this->user->id}) has no api keys set. Can't import");
+            return false;
+        }
+
+        $this->api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
+    }
+
+
+    private function countSymbolsInBuy($user): int
+    {
+        $countOfSymbolsInBuy = 0;
+        foreach ($this->tradeableSymbols as $theSymbol) {
+            if (Cache::get("user_{$user->id}_{$theSymbol}_last_order") == "BUY") {
+                $countOfSymbolsInBuy++;
             }
         }
+
+        return $countOfSymbolsInBuy;
     }
+
+
+    private function setInitialTradeOrder($user, $theSymbol)
+    {
+        // temporary storage for last order
+        $this->lastOrderType = Cache::get("user_{$user->id}_{$theSymbol}_last_order");
+
+        if (!$this->lastOrderType) {
+            Cache::forever("user_{$user->id}_{$theSymbol}_last_order", "SELL");
+        }
+
+    }
+
+    private function getMovingAverages($symbol)
+    {
+        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6); // MA (5)
+        $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m", 11); // MA (10)
+
+        $log = "MA(5): {$this->fiveMinsTicker['moving_average']} -- MA(10): {$this->tenMinsTicker['moving_average']}";
+        Log::info($log);
+    }
+
+
+    private function cacheTriggeredOrder(User $user, string $theSymbol, string $orderType)
+    {
+        $emoji = $orderType === "BUY" ? ":-)" : ":-(";
+
+        Log::info("Now is time to $orderType... $emoji");
+        $this->lastOrderType = $orderType;
+        Cache::forever("user_{$user->id}_{$theSymbol}_last_order", $orderType);
+    }
+
 
     private function hasBuyCondition()
     {

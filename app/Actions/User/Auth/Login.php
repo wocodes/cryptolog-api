@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Notifications\SendRegistrationNotification;
 use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Action;
+use Spatie\Permission\Models\Permission;
 
 class Login extends Action
 {
@@ -62,12 +63,15 @@ class Login extends Action
         }
 
         $user = $user->load('fiat:id,country_code,symbol,usdt_sell_rate,usdt_buy_rate,short_symbol');
-        $user->token = $user->createToken('user-token')->accessToken;
+        $user->token = $user->createToken("{$user->email}-token")->accessToken;
 
-        $user = $user->only('id', 'name', 'email', 'token', 'is_admin', 'finished_setup', 'fiat_id', 'fiat', 'has_api_keys');
-        $response = ['data' => $user, "message" => "Successfully logged in", 'success' => true];
+//        $user->givePermissionTo(Permission::findByName('log-asset', 'api'));
+        $userPermissions = $user->permissions()->pluck('name')->toArray();
 
-//        Notification::route('mail', 'william.odiomonafe@gmail.com')->notifyNow(new SendRegistrationNotification());
+        $userData = $user->only('id', 'name', 'email', 'token', 'is_admin', 'finished_setup', 'fiat_id', 'fiat', 'has_api_keys');
+        $userData['permissions'] = $userPermissions;
+
+        $response = ['data' => $userData, "message" => "Successfully logged in", 'success' => true];
 
         return response()->json($response);
     }

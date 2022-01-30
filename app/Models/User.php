@@ -6,10 +6,12 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\Permission\Traits\HasPermissions;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasRoles;
 
     const METAS = [
         'settings.hide_balance' => 0,
@@ -73,5 +75,15 @@ class User extends Authenticatable
     public function getHasApiKeysAttribute()
     {
         return $this->apiKeys()->exists();
+    }
+
+    public function botTradeAssets()
+    {
+        return $this->hasMany(BotTrade::class);
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
     }
 }

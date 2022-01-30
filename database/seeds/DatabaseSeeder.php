@@ -22,5 +22,6 @@ class DatabaseSeeder extends Seeder
          $this->call(CryptoAssetsSeeder::class);
          $this->call(RealEstateAssetSeeder::class);
 //         $this->call(AssetLogsSeeder::class);
+         $this->call(RolesSeeder::class);
     }
 }
