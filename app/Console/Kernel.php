@@ -31,7 +31,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(function() {
+        $schedule->call(function () {
             $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
             foreach ($chunkedCollection as $item) {
                 foreach ($item as $user) {
@@ -43,7 +43,7 @@ class Kernel extends ConsoleKernel
         })->hourly();
 
 
-        $schedule->call(function() {
+        $schedule->call(function () {
             $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
             foreach ($chunkedCollection as $item) {
                 foreach ($item as $user) {
@@ -54,7 +54,7 @@ class Kernel extends ConsoleKernel
 
 
 
-        $schedule->job(new GetCallToAction())->everyMinute();
+        $schedule->job(new GetCallToAction())->everyFifteenMinutes();
     }
 
     /**
