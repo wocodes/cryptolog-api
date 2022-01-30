@@ -12,6 +12,7 @@ use Spatie\Permission\Models\Permission;
 class ActivateBotTrade extends Action
 {
     private array $errors = [];
+    private array $data = [];
 
     /**
      * Determine if the user is authorized to make this action.
@@ -87,6 +88,8 @@ class ActivateBotTrade extends Action
                     $botTrade->current_value += $value;
                     $botTrade->save();
 
+                    $this->data[] = "Preparing your trades... Should be active in less than 24hrs";
+
                     return true;
                 }
             } else {
@@ -102,7 +105,7 @@ class ActivateBotTrade extends Action
     public function response($result)
     {
         if ($result) {
-            return JsonResponse::success([], "Activated Asset AI Trade");
+            return JsonResponse::success($this->data, "Activated Asset AI Trade.");
         }
 
         return JsonResponse::error($this->errors, "Couldn't activate AI trade");
