@@ -50,6 +50,14 @@ class PruneAssetLogs extends Action
         $log .= $this->user_id ? " for User ID: {$this->user_id}" : "";
         $this->getCommandInstance()->info($log);
 
-        $query->forceDelete();
+        $query->chunk(50, function($logs) {
+            foreach($logs as $log) {
+                // delete withdrawal
+                $log->withdrawals()->delete();
+
+                // delete log
+                $log->delete();
+            }
+        });
     }
 }
