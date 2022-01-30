@@ -18,6 +18,15 @@ Route::prefix("user")->group(function() {
         // wallet transactions
         Route::get('wallet', '\App\Actions\User\Wallet\GetWallet');
         Route::post('wallet/credit', '\App\Actions\User\Wallet\CreditWallet');
+
+        // complete setup
+        Route::get('complete-setup', function () {
+            $user = auth()->user();
+            $user->finished_setup = 1;
+            $user->save();
+
+            return response()->json([], 200);
+        });
     });
 });
 
