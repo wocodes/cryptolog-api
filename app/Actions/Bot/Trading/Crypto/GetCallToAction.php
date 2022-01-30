@@ -61,7 +61,7 @@ class GetCallToAction extends Action
             $this->tradeableSymbols = $user->botTradeAssets()->where('is_active', 1)
                 ->with('asset:id,name')
                 ->get()
-                ->pluck('asset.name');
+                ->pluck('asset.name')->toArray();
 
             // check if should auto trade or manual
             $shouldAutoBotTrade = $user->botTradeAssets()->where('is_active', 1)->where('mode', 'auto')->exists();
