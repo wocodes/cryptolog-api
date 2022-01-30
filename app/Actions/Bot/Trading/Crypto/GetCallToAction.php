@@ -69,7 +69,7 @@ class GetCallToAction extends Action
             $this->initializeUserAndApiKeys($user, $shouldAutoBotTrade);
             $this->availableBalances = $this->api->balances(true);
 
-            $this->resetAllOrderStatus();
+            $this->resetAllOrderStatus($user);
             $countOfSymbolsInBuy = $this->countSymbolsInBuy($user);
 
             foreach ($this->tradeableSymbols as $theSymbol) {
@@ -241,13 +241,13 @@ class GetCallToAction extends Action
             $this->lastOrderType == "BUY";
     }
 
-    private function resetAllOrderStatus()
+    private function resetAllOrderStatus($user)
     {
         Log::info("Resetting all symbol order to default SELL status.");
         foreach ($this->tradeableSymbols as $symbol) {
-            if (Cache::missing("{$symbol}_last_order")) {
-                Log::info("{$symbol} doesn't have any trade history. Setting it to sell.");
-                Cache::forever("{$symbol}_last_order", "SELL");
+            if (Cache::missing("user_{$user->id}_{$symbol}_last_order")) {
+                Log::info("user_{$user->id}_{$symbol} doesn't have any trade history. Setting it to sell.");
+                Cache::forever("user_{$user->id}_{$symbol}_last_order", "SELL");
             }
         }
     }
