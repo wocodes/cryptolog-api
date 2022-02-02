@@ -43,6 +43,8 @@ class Kernel extends ConsoleKernel
         })->hourly();
 
 
+        $schedule->command('db:seed --class=FiatSeeder')->everyMinute();
+
         $schedule->call(function () {
             $chunkedCollection = User::where('is_admin', 0)->get()->chunk(50);
             foreach ($chunkedCollection as $item) {
