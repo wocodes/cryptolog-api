@@ -83,8 +83,7 @@ class GetCallToAction extends Action
 
                 $this->getMovingAverages($symbol);
 
-                Log::info("Last Order: ($this->lastOrderType)");
-                Log::info("Available USDT {$autoBotTrade->current_value}");
+                Log::info("Last Order: ($this->lastOrderType) | Available USDT {$autoBotTrade->current_value}");
 //                $usdtBalance = $this->availableBalances['USDT']['available']; // $500
 
                 if ($this->hasBuyCondition()) {
@@ -293,8 +292,7 @@ class GetCallToAction extends Action
         // if ($limit === 6) { 
              array_pop($closingPrices);
              array_pop($openPrices);
-            Log::info("Open At: " . end($openPrices));
-            Log::info("Closed At: " . end($closingPrices));
+            Log::info("Open: " . end($openPrices) . " | Closed: " . end($closingPrices));
         // }
 
         return [
