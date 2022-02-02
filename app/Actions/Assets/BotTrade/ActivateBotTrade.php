@@ -35,7 +35,8 @@ class ActivateBotTrade extends Action
         return [
             "user_id" => "required|integer",
             "asset_id" => "nullable|integer",
-            "mode" => "required|string|in:auto,manual"
+            "mode" => "required|string|in:auto,manual",
+            "trading_amount" => "required|numeric|min:" . floor($this->user()->fiat->usdt_buy_rate * env('MIN_TRADING_AMOUNT_USD'))
         ];
     }
 
@@ -50,17 +51,17 @@ class ActivateBotTrade extends Action
 
         $user = User::findOrFail($this->user_id);
         $wallet = $user->wallet;
+        $totalBillable = (double) (env('TRADING_BOT_FEE') + $this->trading_amount);
 
         // check the users wallet balance and no active subscription in bot_trades
-        // PLEASE REMOVE 550 MAGIC NUMBER IN FUTURE UPDATE,
-        // Value is subscription fee (500) + 10000 (min. trading amount)
-        $hasMinAvailableBalance = $wallet && $wallet->current_balance >= (double) 11000;
+        // $this->trading_amount is a sum of user's trading
+        $hasMinAvailableBalance = $wallet && $wallet->current_balance >= $totalBillable;
 //        $activeSubscription = $user->botTradeAssets()->where('mode', 'auto')->where('is_active', 1)->exists();
 
         if (!$user->hasPermissionTo('bot-trade')) {
             if ($hasMinAvailableBalance) {
 //            if ($hasMinAvailableBalance && !$activeSubscription) {
-                $user->wallet()->update(['current_balance' => $wallet->current_balance - (double) 11000]);
+                $user->wallet()->update(['current_balance' => $wallet->current_balance - $totalBillable]);
                 $botTradePermission = Permission::findByName('bot-trade');
 
                 $user->givePermissionTo($botTradePermission);
@@ -93,7 +94,7 @@ class ActivateBotTrade extends Action
                     return true;
                 }
             } else {
-                $this->errors[] = "Not enough wallet balance (min. NGN11,000) to subscribe. Please fund your wallet.";
+                $this->errors[] = "Not enough wallet balance to subscribe. Please fund your wallet.";
 
                 return false;
             }
