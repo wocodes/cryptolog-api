@@ -54,7 +54,7 @@ class Kernel extends ConsoleKernel
 
 
 
-        $schedule->job(new GetCallToAction())->everyFifteenMinutes();
+        $schedule->job(new GetCallToAction())->everyTenMinutes();
     }
 
     /**

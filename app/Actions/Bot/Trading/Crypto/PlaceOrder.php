@@ -87,6 +87,8 @@ class PlaceOrder extends Action
             }
 
             Log::info('result', [$order]);
+
+            return $order;
         } catch (RequestException $requestException) {
             Log::error("An error occurred.", [$requestException->response]);
             Log::error("Code", [$requestException->response['code']]);

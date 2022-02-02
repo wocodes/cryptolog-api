@@ -58,16 +58,18 @@ class GetCallToAction extends Action
         })->get();
         
         foreach ($aiTradeSubscribedUsers as $user) {
-            $this->tradeableSymbols = $user->botTradeAssets()->where('is_active', 1)
+            $botTradeAssets = $user->botTradeAssets()->where('is_active', 1);
+            $this->tradeableSymbols = $botTradeAssets
                 ->with('asset:id,name')
                 ->get()
                 ->pluck('asset.name')->toArray();
 
             // check if should auto trade or manual
-            $shouldAutoBotTrade = $user->botTradeAssets()->where('is_active', 1)->where('mode', 'auto')->exists();
+            $shouldAutoBotTrade = $botTradeAssets->where('mode', 'auto')->exists();
 
             $this->initializeUserAndApiKeys($user, $shouldAutoBotTrade);
-            $this->availableBalances = $this->api->balances(true);
+//            $this->availableBalances = $this->api->balances(true);
+            $autoBotTrade = $botTradeAssets->where('mode', 'auto')->first();
 
             $this->resetAllOrderStatus($user);
             $countOfSymbolsInBuy = $this->countSymbolsInBuy($user);
@@ -82,19 +84,41 @@ class GetCallToAction extends Action
                 $this->getMovingAverages($symbol);
 
                 Log::info("Last Order: ($this->lastOrderType)");
-                Log::info("Available USDT {$this->availableBalances['USDT']['available']}");
-                $usdtBalance = $this->availableBalances['USDT']['available']; // $500
+                Log::info("Available USDT {$autoBotTrade->current_value}");
+//                $usdtBalance = $this->availableBalances['USDT']['available']; // $500
 
                 if ($this->hasBuyCondition()) {
 
                     $this->cacheTriggeredOrder($user, $theSymbol, "BUY");
-                    $this->placeBuyOrder($usdtBalance, $countOfSymbolsInBuy, $symbol);
+                    $response = $this->placeBuyOrder($autoBotTrade->current_value, $countOfSymbolsInBuy, $symbol);
+
+                    // capture the executedQty or origQty of asset bought at $userUsdtBalance
+                    // and save to the logs.
+                    // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
+
+                    $autoBotTrade->log()->create([
+                        'value_bought' => $autoBotTrade->current_value,
+                        'qty_bought' => $response['executedQty']
+                    ]);
 
                 } elseif ($this->hasSellCondition()) {
 
                     $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
-                    $this->placeSellOrder($usdtBalance, $countOfSymbolsInBuy, $symbol);
+                    $response = $this->placeSellOrder($autoBotTrade->log->qty_bought, $countOfSymbolsInBuy, $symbol);
 
+                    // while placing a sell order, sell based on the executedQty or origQty bought,
+                    // this replace $userUsdtBalance above with executedQty or origQty or qty_bought
+                    // and update the logs.
+                    // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
+
+                    $autoBotTrade->log()->update([
+                        'value_sold' => $response['cummulativeQuoteQty'],
+                        'qty_sold' => $response['executedQty']
+                    ]);
+
+                    $autoBotTrade->update([
+                        'current_value' => $response['cummulativeQuoteQty']
+                    ]);
                 } else {
                     Log::info("Not time to place an order... Still checking");
                 }
@@ -124,9 +148,11 @@ class GetCallToAction extends Action
                 //            "timeInForce" => "GTC",
                 "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
                 "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-            ])->run();
+            ])->handle();
 
             Log::info("Order response:", [$response]);
+
+            return $response;
         } else {
             Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
         }
@@ -134,7 +160,7 @@ class GetCallToAction extends Action
 
 
 
-    public function placeSellOrder($usdtBalance, $countOfSymbolsInBuy, $symbol)
+    public function placeSellOrder($qtyBought, $countOfSymbolsInBuy, $symbol)
     {
         // $sellPercentage = 20;
 
@@ -143,22 +169,24 @@ class GetCallToAction extends Action
         // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
 
         $availableSymbolQty = $this->availableBalances[str_replace('USDT', '', $symbol)]['available'];
-        Log::info("Available $symbol qty:", [(string) $availableSymbolQty]);
+        Log::info("Qty of $symbol Bought:", [(string) $qtyBought]);
 
         $response = PlaceOrder::make([
             "symbol" => $symbol,
             "side" => "SELL",
 //                    "quoteOrderQty" => (string) $price,
-            "quantity" => (string) $availableSymbolQty,
+            "quantity" => (string) $qtyBought,
 //            "price" => $assetPrice,
 //            "newClientOrderId" => uniqid(),
 //            "type" => "LIMIT",
 //            "timeInForce" => "GTC",
             "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
             "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-        ])->run();
+        ])->handle();
 
         Log::info("Order response:", [$response]);
+
+        return $response;
     }
 
 
@@ -206,10 +234,13 @@ class GetCallToAction extends Action
 
     private function getMovingAverages($symbol)
     {
-        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6); // MA (5)
-        $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m", 11); // MA (10)
+//        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6); // MA (5)
+//        $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m", 11); // MA (10)
 
-        $log = "MA(5): {$this->fiveMinsTicker['moving_average']} -- MA(10): {$this->tenMinsTicker['moving_average']}";
+        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "1h", 11); // MA (10)
+        $this->tenMinsTicker = $this->getMovingAverage($symbol, "1h", 26); // MA (25)
+
+        $log = "MA(10): {$this->fiveMinsTicker['moving_average']} -- MA(25): {$this->tenMinsTicker['moving_average']}";
         Log::info($log);
     }
 
