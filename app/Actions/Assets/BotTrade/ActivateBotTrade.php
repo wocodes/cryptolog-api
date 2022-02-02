@@ -83,7 +83,7 @@ class ActivateBotTrade extends Action
                         $botTrade->asset_id = $assetId;
                     }
 
-                    $value = 10000 / $user->fiat->usdt_buy_rate;
+                    $value = $this->trading_amount / $user->fiat->usdt_buy_rate;
                     $botTrade->is_active = 1;
                     $botTrade->initial_value += $value;
                     $botTrade->current_value += $value;
