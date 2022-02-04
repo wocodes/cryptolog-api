@@ -95,10 +95,12 @@ class GetCallToAction extends Action
                     // and save to the logs.
                     // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
 
-                    $autoBotTrade->log()->create([
+                    $log = $autoBotTrade->log()->create([
                         'value_bought' => $autoBotTrade->current_value,
                         'qty_bought' => $response['executedQty']
                     ]);
+
+                    Log::info('saving user buy log', [$log]);
 
                 } elseif ($this->hasSellCondition()) {
 
@@ -110,14 +112,17 @@ class GetCallToAction extends Action
                     // and update the logs.
                     // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
 
-                    $autoBotTrade->log()->update([
+                    $log = $autoBotTrade->log()->update([
                         'value_sold' => $response['cummulativeQuoteQty'],
                         'qty_sold' => $response['executedQty']
                     ]);
 
-                    $autoBotTrade->update([
+                    $botTrade = $autoBotTrade->update([
                         'current_value' => $response['cummulativeQuoteQty']
                     ]);
+
+                    Log::info('saving user buy log', [$log, $botTrade]);
+                    
                 } else {
                     Log::info("Not time to place an order... Still checking");
                 }
