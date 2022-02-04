@@ -79,11 +79,10 @@ class GetCallToAction extends Action
 
                 $symbol = "{$theSymbol}USDT";
                 Log::info("");
-                Log::info("--- Running Bot (Trading $symbol) ---");
+                Log::info("--- Checking $symbol | Last Order: $this->lastOrderType) | Available USDT $autoBotTrade->current_value ---");
 
                 $this->getMovingAverages($symbol);
 
-                Log::info("Last Order: ($this->lastOrderType) | Available USDT {$autoBotTrade->current_value}");
 //                $usdtBalance = $this->availableBalances['USDT']['available']; // $500
 
                 if ($this->hasBuyCondition()) {
@@ -123,8 +122,8 @@ class GetCallToAction extends Action
 
                     Log::info('saving user buy log', [$log, $botTrade]);
                     
-                } else {
-                    Log::info("Not time to place an order... Still checking");
+//                } else {
+//                    Log::info("Not time to place an order... Still checking");
                 }
             }
         }
@@ -132,7 +131,7 @@ class GetCallToAction extends Action
 
 
 
-    private function placeBuyOrder($usdtBalance, $countOfSymbolsInBuy, $symbol)
+    private function placeBuyOrder($usdtBalance, $countOfSymbolsInBuy, $symbol) : ?array
     {
         if ($usdtBalance > $this->minimumUsdtBalance || $countOfSymbolsInBuy < count($this->tradeableSymbols)) {
             $this->buyPercentage = 100 / count($this->tradeableSymbols) - $countOfSymbolsInBuy; // recommended is 20 i.e 20%
@@ -154,11 +153,12 @@ class GetCallToAction extends Action
                 "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
             ])->handle();
 
-            Log::info("Order response:", [$response]);
+            Log::info("[BUYING] Order response:", [$response]);
 
             return $response;
         } else {
             Log::alert("BUY:: Available USDT Balance {$usdtBalance} is low. Can't place an order.");
+            return null;
         }
     }
 
@@ -188,7 +188,7 @@ class GetCallToAction extends Action
             "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
         ])->handle();
 
-        Log::info("Order response:", [$response]);
+        Log::info("[SELLING] Order response:", [$response]);
 
         return $response;
     }
@@ -241,7 +241,7 @@ class GetCallToAction extends Action
 //        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6); // MA (5)
 //        $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m", 11); // MA (10)
 
-        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "1h", 11); // MA (10)
+        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "1h", 11, true); // MA (10)
         $this->tenMinsTicker = $this->getMovingAverage($symbol, "1h", 26); // MA (25)
 
         $log = "MA(10): {$this->fiveMinsTicker['moving_average']} -- MA(25): {$this->tenMinsTicker['moving_average']}";
@@ -253,7 +253,7 @@ class GetCallToAction extends Action
     {
         $emoji = $orderType === "BUY" ? ":-)" : ":-(";
 
-        Log::info("Now is time to $orderType... $emoji");
+        Log::info("[{$orderType}ING] $theSymbol... $emoji");
         $this->lastOrderType = $orderType;
         Cache::forever("user_{$user->id}_{$theSymbol}_last_order", $orderType);
     }
@@ -288,7 +288,7 @@ class GetCallToAction extends Action
     }
 
 
-    private function getMovingAverage(string $symbol, string $timeFrame, int $limit)
+    private function getMovingAverage(string $symbol, string $timeFrame, int $limit, $showLog = false)
     {
         $ticks = $this->api->candlesticks($symbol, $timeFrame, $limit);
         $closingPrices = array_column($ticks, 'close');
@@ -297,7 +297,10 @@ class GetCallToAction extends Action
         // if ($limit === 6) { 
              array_pop($closingPrices);
              array_pop($openPrices);
-            Log::info("Open: " . end($openPrices) . " | Closed: " . end($closingPrices));
+
+         if($showLog) {
+             Log::info("Candle Open: " . end($openPrices) . " / Closed: " . end($closingPrices));
+         }
         // }
 
         return [

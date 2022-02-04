@@ -53,6 +53,7 @@ class PlaceOrder extends Action
      */
     public function handle()
     {
+        $order = 0;
         $this->user = $this->user();
 
         if (!$this->user && $this->user_id) {
@@ -86,9 +87,7 @@ class PlaceOrder extends Action
                     $api->MarketQuoteSell($this->symbol, $this->quoteOrderQty);
             }
 
-            Log::info('result', [$order]);
-
-            return $order;
+            Log::info("[{$this->side}ING]result", [$order]);
         } catch (RequestException $requestException) {
             Log::error("An error occurred.", [$requestException->response]);
             Log::error("Code", [$requestException->response['code']]);
@@ -96,6 +95,8 @@ class PlaceOrder extends Action
         } catch (\Throwable $throwable) {
             Log::error($throwable->getMessage());
         }
+
+        return $order;
     }
 
 
