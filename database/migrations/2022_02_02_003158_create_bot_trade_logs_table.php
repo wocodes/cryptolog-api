@@ -15,7 +15,7 @@ class CreateBotTradeLogsTable extends Migration
     {
         Schema::create('bot_trade_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bot_trades')->constrained();
+            $table->foreignId('bot_trade_id')->constrained();
             $table->double('value_bought');
             $table->double('qty_bought');
             $table->double('value_sold')->nullable();

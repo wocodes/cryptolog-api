@@ -103,13 +103,14 @@ class GetCallToAction extends Action
 
                 } elseif ($this->hasSellCondition()) {
 
-                    $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
                     $response = $this->placeSellOrder($autoBotTrade->log->qty_bought, $countOfSymbolsInBuy, $symbol);
 
                     // while placing a sell order, sell based on the executedQty or origQty bought,
                     // this replace $userUsdtBalance above with executedQty or origQty or qty_bought
                     // and update the logs.
                     // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
+
+                    $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
 
                     $log = $autoBotTrade->log()->update([
                         'value_sold' => $response['cummulativeQuoteQty'],
@@ -140,7 +141,7 @@ class GetCallToAction extends Action
 //                        $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
             $price = (($usdtBalance/100) * $this->buyPercentage); // gives $100
 
-            $response = PlaceOrder::make([
+            $response = PlaceOrder::run([
                 "symbol" => $symbol,
                 "side" => "BUY",
                 "quoteOrderQty" => (string) $price,
@@ -151,7 +152,7 @@ class GetCallToAction extends Action
                 //            "timeInForce" => "GTC",
                 "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
                 "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-            ])->handle();
+            ]);
 
             Log::info("[BUYING] Order response:", [$response]);
 
@@ -175,7 +176,7 @@ class GetCallToAction extends Action
         $availableSymbolQty = $this->availableBalances[str_replace('USDT', '', $symbol)]['available'];
         Log::info("Qty of $symbol Bought:", [(string) $qtyBought]);
 
-        $response = PlaceOrder::make([
+        $response = PlaceOrder::run([
             "symbol" => $symbol,
             "side" => "SELL",
 //                    "quoteOrderQty" => (string) $price,
@@ -186,7 +187,7 @@ class GetCallToAction extends Action
 //            "timeInForce" => "GTC",
             "type" => "MARKET", // This specifies that the order should be filled immediately at the current market price
             "newOrderRespType" => "ACK", // Sends an ACKnowledgement that a new order has been filled
-        ])->handle();
+        ]);
 
         Log::info("[SELLING] Order response:", [$response]);
 
