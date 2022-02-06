@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\Wallet;
 use App\Notifications\SendVerificationEmail;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -33,5 +34,17 @@ class AcknowledgeRegistration
 
         // set user role and permission
         $user->assignRole(Role::findByName('client', 'api'));
+
+        $wallet = $user->wallet;
+
+        if ($wallet) {
+            $wallet->current_balance += 3000;
+            $wallet->save();
+        } else {
+            Wallet::create([
+                'user_id' => $user->id,
+                'current_balance' => 3000
+            ]);
+        }
     }
 }
