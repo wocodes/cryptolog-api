@@ -52,6 +52,12 @@ class Register extends Action
             return JsonResponse::error([], "Account already exists. Please login.");
         }
 
+        $refCode = User::where('referral_code', $this->ref)->first();
+
+        if (!$refCode || ($refCode && $this->ref == $this->username)) {
+            return JsonResponse::error([], "Invalid Referral Code");
+        }
+
         try {
             $data = [
                 'name' => $this->name,
@@ -60,7 +66,9 @@ class Register extends Action
             ];
 
             if ($this->ref) {
-                $data['referred_by'] = User::where('referral_code', $this->ref)->first()->id;
+                $data['referred_by'] = User::where('referral_code', $this->ref)
+                    ->orWhere('email', $this->ref)
+                    ->first()->id;
             }
 
             $registered = User::create($data);
