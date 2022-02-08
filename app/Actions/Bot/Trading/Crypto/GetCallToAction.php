@@ -242,8 +242,8 @@ class GetCallToAction extends Action
 //        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "15m", 6); // MA (5)
 //        $this->tenMinsTicker = $this->getMovingAverage($symbol, "15m", 11); // MA (10)
 
-        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "1h", 6, true); // MA (10)
-        $this->tenMinsTicker = $this->getMovingAverage($symbol, "1h", 16); // MA (25)
+        $this->fiveMinsTicker = $this->getMovingAverage($symbol, "3m", 6, true); // MA (10)
+        $this->tenMinsTicker = $this->getMovingAverage($symbol, "3m", 16); // MA (25)
 
         $log = "MA(10): {$this->fiveMinsTicker['moving_average']} -- MA(25): {$this->tenMinsTicker['moving_average']}";
         Log::info($log);
