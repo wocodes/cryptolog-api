@@ -58,7 +58,7 @@ class Kernel extends ConsoleKernel
 
 
 
-        $schedule->job(new GetCallToAction())->everyFiveMinutes();
+        $schedule->job(new GetCallToAction())->everyTenMinutes();
 
 //        $schedule->call(function () {
 //            $lastQtyBought = BotTrade::first()->logs->reverse()->first()->qty_bought;
