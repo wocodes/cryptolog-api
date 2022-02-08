@@ -115,7 +115,7 @@ class GetCallToAction extends Action
 
                     $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
 
-                    $log = $autoBotTrade->logs()->update([
+                    $log = $lastLog->update([
                         'value_sold' => $response['cummulativeQuoteQty'],
                         'qty_sold' => $response['executedQty']
                     ]);
