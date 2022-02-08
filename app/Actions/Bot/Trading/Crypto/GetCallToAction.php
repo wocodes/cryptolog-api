@@ -94,7 +94,7 @@ class GetCallToAction extends Action
                     // and save to the logs.
                     // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
 
-                    $log = $autoBotTrade->log()->create([
+                    $log = $autoBotTrade->logs()->create([
                         'value_bought' => $autoBotTrade->current_value,
                         'qty_bought' => $response['executedQty']
                     ]);
@@ -102,8 +102,11 @@ class GetCallToAction extends Action
                     Log::info('saving user buy log', [$log]);
 
                 } elseif ($this->hasSellCondition()) {
+                    $lastLog = $autoBotTrade->logs->reverse()->first();
+                    Log::info("last log ID: $lastLog->id");
+                    Log::info("last bought from last log: $lastLog->qty_bought");
 
-                    $response = $this->placeSellOrder($autoBotTrade->log->qty_bought, $countOfSymbolsInBuy, $symbol);
+                    $response = $this->placeSellOrder($lastLog->qty_bought, $countOfSymbolsInBuy, $symbol);
 
                     // while placing a sell order, sell based on the executedQty or origQty bought,
                     // this replace $userUsdtBalance above with executedQty or origQty or qty_bought
@@ -112,7 +115,7 @@ class GetCallToAction extends Action
 
                     $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
 
-                    $log = $autoBotTrade->log()->update([
+                    $log = $autoBotTrade->logs()->update([
                         'value_sold' => $response['cummulativeQuoteQty'],
                         'qty_sold' => $response['executedQty']
                     ]);

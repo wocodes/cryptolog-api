@@ -7,6 +7,7 @@ use App\Actions\Assets\Logs\UpdateAssetLogs;
 use App\Actions\Assets\Logs\UpdateCryptoAssetValue;
 use App\Actions\Assets\Logs\UpdateRealEstateAssetValue;
 use App\Actions\Bot\Trading\Crypto\GetCallToAction;
+use App\Models\BotTrade;
 use App\Models\User;
 use Binance\API;
 use Illuminate\Console\Scheduling\Schedule;
@@ -60,10 +61,9 @@ class Kernel extends ConsoleKernel
         $schedule->job(new GetCallToAction())->everyFiveMinutes();
 
 //        $schedule->call(function () {
-//            $api = new API('LbcvrB9bNo0yY2Am7FlqKGW7qY2P9BMApf4dWe2CgZoTTZ0m5r46aSPkboP4nNPt', 'TUoM5G9ArPctiQPOS6YutMXVskPXOGPpYMDfLaKggQodgIPAQGXb4rf4Xm6Za5Dt');
-//            $data = $api->MarketSellTest("SHIBUSDT", 530613);
+//            $lastQtyBought = BotTrade::first()->logs->reverse()->first()->qty_bought;
 //
-//            dd($data);
+//            dd($lastQtyBought);
 //        })->everyMinute();
     }
 

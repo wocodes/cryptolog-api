@@ -19,8 +19,8 @@ class BotTrade extends Model
         return $this->belongsTo(Asset::class);
     }
 
-    public function log()
+    public function logs()
     {
-        return $this->hasOne(BotTradeLog::class);
+        return $this->hasMany(BotTradeLog::class);
     }
 }
