@@ -74,7 +74,7 @@ class PlaceOrder extends Action
 //            $url = $this->buildUrl();
             $qty = $this->quantity . " qty" ?? "$" . $this->quoteOrderQty;
 
-            Log::info("Placing {$this->side} {$this->type} Order for {$qty} of {$this->symbol}");
+            Log::info("{$this->side} {$this->type} Order for {$qty} of {$this->symbol}");
 //            $assets = Http::withHeaders(["X-MBX-APIKEY" => $this->userApiKeys->key])->retry(3)->post($url)->json();
 
             $api = new API($this->userApiKeys->key, $this->userApiKeys->secret);
@@ -87,7 +87,7 @@ class PlaceOrder extends Action
                     $api->MarketQuoteSell($this->symbol, $this->quoteOrderQty);
             }
 
-            Log::info("[{$this->side}ING]result", [$order]);
+            Log::info("[{$this->side}ING] result", [$order]);
         } catch (RequestException $requestException) {
             Log::error("An error occurred.", [$requestException->response]);
             Log::error("Code", [$requestException->response['code']]);
