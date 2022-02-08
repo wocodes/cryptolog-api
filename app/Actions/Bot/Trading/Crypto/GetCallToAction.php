@@ -173,7 +173,7 @@ class GetCallToAction extends Action
         // $quantity = (($usdtBalance/100) * $sellPercentage) / $this->tenMinsTicker; // gives $100. $100 worth of this asset gives total quantity of 2196000
         // $price =(($usdtBalance/100) * $sellPercentage); // gives $100
 
-        $availableSymbolQty = $this->availableBalances[str_replace('USDT', '', $symbol)]['available'];
+//        $availableSymbolQty = $this->availableBalances[str_replace('USDT', '', $symbol)]['available'];
         Log::info("Qty of $symbol Bought:", [(string) $qtyBought]);
 
         $response = PlaceOrder::run([

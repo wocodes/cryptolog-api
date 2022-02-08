@@ -47,12 +47,14 @@ class SendVerificationEmail extends Notification
         $nameFromEmail = explode('@', $notifiable->email)[0];
         $contents = [
             'Welcome to Assetlog! We\'re excited to have you on board.',
+            'You have been given 3 months FREE subscription to use the service.',
             'Kindly verify your account by clicking the button below.',
             "<a href='https://assetlog.co/#/verify?code={$verificationCode}' style='margin:20px 0;text-decoration:none;font-weight:bold;background-color:#2456b4;color:#fff;border-radius:5px;padding:10px;'>Verify My Account</a>",
 
             '<br>',
             "Here is your referral link. Referrals are not compulsory but can help you receive bonuses in the future.<br>
-            <strong>Referral URL:</strong> <a href='https://assetlog.co/#/register?ref={$referralCode}'>https://assetlog.co/#/register?ref={$referralCode}</a>",
+            <strong>Referral URL:</strong> <a href='https://assetlog.co/#/register?ref={$referralCode}'>https://assetlog.co/#/register?ref={$referralCode}</a><br>
+            <strong> OR </strong><br><a href='https://assetlog.co/#/register?ref={$notifiable->email}'>https://assetlog.co/#/register?ref={$notifiable->email}</a>",
             '<br>',
             'Lastly, we ask that you kindly fill this short survey by clicking the link below &#128578;',
             '<a href="https://forms.gle/AdU2M6ZJFwYTh7V99" style="text-decoration:none;font-weight:bold;color:#2456b4;">Fill Survey</a>',
