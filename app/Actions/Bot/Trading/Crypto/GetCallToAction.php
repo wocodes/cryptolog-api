@@ -96,7 +96,7 @@ class GetCallToAction extends Action
 
                     $log = $autoBotTrade->logs()->create([
                         'value_bought' => $autoBotTrade->current_value,
-                        'qty_bought' => $response['executedQty']
+                        'qty_bought' => $response['executedQty'] - ($response['fills']['commission'] + 100) // 100 is an arbitrary value in order to properly execute sell
                     ]);
 
                     Log::info('saving user buy log', [$log]);
