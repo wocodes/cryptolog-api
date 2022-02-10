@@ -34,7 +34,8 @@ class Register extends Action
             "name" => "required|string",
             "username" => "required|email:rfc,dns",
             'ref' => 'nullable|string',
-            "password" => "required|string|min:5"
+            "password" => "required|string|min:5",
+            "phone" => "nullable|string"
         ];
     }
 
@@ -63,6 +64,7 @@ class Register extends Action
             $data = [
                 'name' => $this->name,
                 'email' => $this->username,
+                'phone' => $this->phone,
                 'password' => bcrypt($this->password)
             ];
 
