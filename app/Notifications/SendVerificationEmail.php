@@ -47,7 +47,7 @@ class SendVerificationEmail extends Notification
         $nameFromEmail = explode('@', $notifiable->email)[0];
         $contents = [
             'Welcome to Assetlog! We\'re excited to have you on board.',
-            'You have been given 3 months FREE subscription to use the service.',
+            "You have been given " . env('NUMBER_OF_FREE_SUBSCRIPTION_MONTHS') . " months FREE subscription to use the service.",
             'Kindly verify your account by clicking the button below.',
             "<a href='https://assetlog.co/#/verify?code={$verificationCode}' style='margin:20px 0;text-decoration:none;font-weight:bold;background-color:#2456b4;color:#fff;border-radius:5px;padding:10px;'>Verify My Account</a>",
 

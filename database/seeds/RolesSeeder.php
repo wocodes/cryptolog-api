@@ -13,15 +13,16 @@ class RolesSeeder extends Seeder
      */
     public function run()
     {
-        if (!Role::count()) {
-            Role::create(['name' => 'admin', 'guard_name' => 'api']);
-            Role::create(['name' => 'client', 'guard_name' => 'api']);
+        $roles = ["admin", "client"];
+        foreach ($roles as $role) {
+            Role::findOrCreate($role, 'api');
         }
 
-        if (!Permission::count()) {
-            Permission::create(['name' => 'log-asset', 'guard_name' => 'api']);
-            Permission::create(['name' => 'co-own', 'guard_name' => 'api']);
-            Permission::create(['name' => 'bot-trade', 'guard_name' => 'api']);
+        $freePermissions = ["log-asset", "calculator"];
+        $paidPermissions = ["co-own-asset", "bot-trade", "trading-tips"];
+        $allPermissions = array_merge($freePermissions, $paidPermissions);
+        foreach ($allPermissions as $permission) {
+            Permission::findOrCreate($permission, 'api');
         }
 
         $this->assignPermissionsToRole();

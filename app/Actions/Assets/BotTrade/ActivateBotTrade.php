@@ -34,7 +34,7 @@ class ActivateBotTrade extends Action
     {
         return [
             "user_id" => "required|integer",
-            "asset_id" => "nullable|integer",
+//            "asset_id" => "nullable|integer",
             "mode" => "required|string|in:auto,manual",
             "trading_amount" => "required|numeric|min:" . floor($this->user()->fiat->usdt_buy_rate * env('MIN_TRADING_AMOUNT_USD'))
         ];
@@ -47,60 +47,62 @@ class ActivateBotTrade extends Action
      */
     public function handle(): bool
     {
-        $assetId = $this->asset_id ?? Asset::whereIn('symbol', ['XRP', 'SHIB'])->get()->random()->id;
-
         $user = User::findOrFail($this->user_id);
+
+        if (!$user->hasActivePaidSubscription()) {
+            $this->errors[] = "This is a paid service. Please subscribe";
+
+            return false;
+        }
+
+//        $assetId = $this->asset_id ?? Asset::whereIn('symbol', ['XRP', 'SHIB'])->get()->random()->id;
+        $assetId = $this->asset_id ?? Asset::where('symbol', 'SHIB')->first()->id;
         $wallet = $user->wallet;
         $totalBillable = (double) (env('TRADING_BOT_FEE') + $this->trading_amount);
 
         // check the users wallet balance and no active subscription in bot_trades
         // $this->trading_amount is a sum of user's trading
         $hasMinAvailableBalance = $wallet && $wallet->current_balance >= $totalBillable;
-//        $activeSubscription = $user->botTradeAssets()->where('mode', 'auto')->where('is_active', 1)->exists();
+        $activeBotTrade = $user->botTradeAssets()->where('mode', 'auto')->where('is_active', 1);
 
-        if (!$user->hasPermissionTo('bot-trade')) {
-            if ($hasMinAvailableBalance) {
-//            if ($hasMinAvailableBalance && !$activeSubscription) {
-                $user->wallet()->update(['current_balance' => $wallet->current_balance - $totalBillable]);
-                $botTradePermission = Permission::findByName('bot-trade');
-
-                $user->givePermissionTo($botTradePermission);
-
-                $assetBotTrade = $user->botTradeAssets()->where('asset_id', $assetId)->first();
-
-                if ($user->botTradeAssets()->where('is_active', 1)->count() == 2) {
-                    $this->errors[] = "Can't activate Bot trade for more than 2 assets at the moment.";
-
-                    return false;
-                }
-
-                if (!$assetBotTrade || $assetBotTrade && !$assetBotTrade->is_active) {
-                    $botTrade = $user->botTradeAssets()->where('asset_id', $assetId)->first();
-
-                    if(!$botTrade) {
-                        $botTrade = new BotTrade();
-                        $botTrade->user_id = $user->id;
-                        $botTrade->asset_id = $assetId;
-                    }
-
-                    $value = $this->trading_amount / $user->fiat->usdt_buy_rate;
-                    $botTrade->is_active = 1;
-                    $botTrade->initial_value += $value;
-                    $botTrade->current_value += $value;
-                    $botTrade->save();
-
-                    $this->data[] = "Preparing your trades... Should be active in less than 24hrs";
-
-                    return true;
-                }
-            } else {
-                $this->errors[] = "Not enough wallet balance to subscribe. Please fund your wallet.";
-
-                return false;
-            }
+        if ($user->hasActivePaidSubscription() && $activeBotTrade->exists()) {
+            return true;
         }
 
-        return true;
+        if ($hasMinAvailableBalance) {
+            $user->wallet()->update(['current_balance' => $wallet->current_balance - $totalBillable]);
+
+//                $assetBotTrade = $user->botTradeAssets()->where('asset_id', $assetId)->first();
+
+//                if ($user->botTradeAssets()->where('is_active', 1)->count() == 2) {
+//                    $this->errors[] = "Can't activate Bot trade for more than 2 assets at the moment.";
+//
+//                    return false;
+//                }
+
+
+            $botTrade = $user->botTradeAssets()->where('mode', 'auto')->first();
+
+            if(!$botTrade) {
+                $botTrade = new BotTrade();
+                $botTrade->user_id = $user->id;
+                $botTrade->asset_id = $assetId;
+            }
+
+            $value = $this->trading_amount / $user->fiat->usdt_buy_rate;
+            $botTrade->is_active = 1;
+            $botTrade->initial_value += $value;
+            $botTrade->current_value += $value;
+            $botTrade->save();
+
+            $this->data[] = "Preparing your trades... Should be active in less than 24hrs";
+
+            return true;
+        } else {
+            $this->errors[] = "Not enough wallet balance to subscribe. Please fund your wallet.";
+
+            return false;
+        }
     }
 
     public function response($result)

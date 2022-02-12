@@ -86,4 +86,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Wallet::class);
     }
+
+    public function appSubscriptions()
+    {
+        return $this->hasMany(AppSubscription::class);
+    }
+
+    public function hasActivePaidSubscription()
+    {
+        return $this->appSubscriptions()->where('is_active', 1)->latest()->first();
+    }
 }

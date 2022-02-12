@@ -39,6 +39,11 @@ class GetWallet extends Action
 
     public function response($result)
     {
-        return JsonResponse::success($result ?? ['current_balance' => 0], "Wallet Retrieved");
+        $data = [
+            'current_balance' => $result['current_balance'] ?? 0,
+            'fiat' => $this->user()->fiat()->select('id','country_code','symbol','usdt_sell_rate','usdt_buy_rate','short_symbol')->first()
+        ];
+
+        return JsonResponse::success($data, "Wallet Retrieved");
     }
 }

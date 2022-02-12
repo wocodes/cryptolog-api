@@ -32,7 +32,8 @@ class Register extends Action
     {
         return [
             "name" => "required|string",
-            "username" => "required|email:rfc,dns",
+//            "username" => "required|email:rfc,dns",
+            "username" => "required|email",
             'ref' => 'nullable|string',
             "password" => "required|string|min:5",
             "phone" => "nullable|string"
