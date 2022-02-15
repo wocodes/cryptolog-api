@@ -205,10 +205,11 @@ class GetCallToAction extends Action
     private function initializeUserAndApiKeys(User $user, bool $autoTradeMode)
     {
         $this->user = $user;
-        Log::info("Gotten User", [$this->user]);
+        Log::info("Gotten User ID: {$this->user->id}, Email: {$this->user->email}");
 
         $adminApiKeys = User::where('email', 'admin@assetlog.co')->first()->apiKeys()->first();
-        $this->userApiKeys = $autoTradeMode ? $adminApiKeys : $this->user->apiKeys()->first();
+//        $this->userApiKeys = $autoTradeMode ? $adminApiKeys : $this->user->apiKeys()->first();
+        $this->userApiKeys = $adminApiKeys;
 
         if (!$this->userApiKeys) {
             Log::info("User: {$this->user->email} ({$this->user->id}) has no api keys set. Can't import");
