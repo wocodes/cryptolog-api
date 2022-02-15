@@ -204,7 +204,7 @@ class GetCallToAction extends Action
         $this->user = $user;
         Log::info("Gotten User", [$this->user]);
 
-        $adminApiKeys = User::where('email', 'william.odiomonafe@gmail.com')->first()->apiKeys()->first();
+        $adminApiKeys = User::where('email', 'admin@assetlog.co')->first()->apiKeys()->first();
         $this->userApiKeys = $autoTradeMode ? $adminApiKeys : $this->user->apiKeys()->first();
 
         if (!$this->userApiKeys) {

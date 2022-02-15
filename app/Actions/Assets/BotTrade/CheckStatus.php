@@ -40,7 +40,7 @@ class CheckStatus extends Action
     {
         $user = $this->user_id ? User::findOrFail($this->user_id) : $this->user();
 
-        return $user->hasPermissionTo('bot-trade') ? $user->botTradeAssets : false;
+        return $user->hasPermissionTo('bot-trade') && $user->hasActivePaidSubscription() ? $user->botTradeAssets : false;
     }
 
 
