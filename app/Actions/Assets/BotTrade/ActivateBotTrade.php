@@ -58,7 +58,7 @@ class ActivateBotTrade extends Action
 //        $assetId = $this->asset_id ?? Asset::whereIn('symbol', ['XRP', 'SHIB'])->get()->random()->id;
         $assetId = $this->asset_id ?? Asset::where('symbol', 'SHIB')->first()->id;
         $wallet = $user->wallet;
-        $totalBillable = (double) (env('TRADING_BOT_FEE') + $this->trading_amount);
+        $totalBillable = (double) $this->trading_amount;
 
         // check the users wallet balance and no active subscription in bot_trades
         // $this->trading_amount is a sum of user's trading
@@ -89,7 +89,7 @@ class ActivateBotTrade extends Action
                 $botTrade->asset_id = $assetId;
             }
 
-            $value = $this->trading_amount / $user->fiat->usdt_buy_rate;
+            $value = number_format($this->trading_amount / $user->fiat->usdt_buy_rate, 8);
             $botTrade->is_active = 1;
             $botTrade->initial_value += $value;
             $botTrade->current_value += $value;

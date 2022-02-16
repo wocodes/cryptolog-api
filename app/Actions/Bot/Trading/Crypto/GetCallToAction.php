@@ -123,7 +123,7 @@ class GetCallToAction extends Action
                         ]);
 
                         $botTrade = $autoBotTrade->update([
-                            'current_value' => $response['cummulativeQuoteQty']
+                            'current_value' => number_format($response['cummulativeQuoteQty'], 8)
                         ]);
 
                         Log::info('saving user buy log', [$log, $botTrade]);
