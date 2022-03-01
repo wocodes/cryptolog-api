@@ -42,7 +42,7 @@ class Kernel extends ConsoleKernel
                     UpdateCryptoAssetValue::run(['user_id' => $user->id]);
                 }
             }
-        })->hourly();
+        })->twiceDaily();
 
 
         $schedule->command('db:seed --class=FiatSeeder')->twiceDaily();

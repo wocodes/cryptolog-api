@@ -74,7 +74,7 @@ class UpdateAssetLogs extends Action implements ShouldQueue
 
         $this->userApiKeys = $this->user->apiKeys()->first();
         if (!$this->userApiKeys) {
-            Log::info("User has no api keys set. Can't get orders");
+//            Log::info("User has no api keys set. Can't get orders");
             return false;
         }
 
