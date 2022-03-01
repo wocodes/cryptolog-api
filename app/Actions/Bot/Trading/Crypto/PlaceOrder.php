@@ -60,7 +60,7 @@ class PlaceOrder extends Action
             $this->user = User::findOrFail($this->user_id);
         }
 
-        $this->user = User::where('is_admin', 0)->firstOrFail();
+        $this->user = User::findOrFail(1);
 
 //        Log::info("Importing Balance from Binance for User {$this->user->id}");
 

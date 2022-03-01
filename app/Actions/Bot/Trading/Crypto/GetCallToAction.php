@@ -50,6 +50,7 @@ class GetCallToAction extends Action
      * Execute the action and return a result.
      *
      * @return mixed
+     * @throws \Exception
      */
     public function handle()
     {
@@ -87,49 +88,57 @@ class GetCallToAction extends Action
 
                 if ($this->hasBuyCondition()) {
 
-                    $this->cacheTriggeredOrder($user, $theSymbol, "BUY");
-                    $response = $this->placeBuyOrder($autoBotTrade->current_value, $countOfSymbolsInBuy, $symbol);
+                    try {
+                        $response = $this->placeBuyOrder($autoBotTrade->current_value, $countOfSymbolsInBuy, $symbol);
 
-                    // capture the executedQty or origQty of asset bought at $userUsdtBalance
-                    // and save to the logs.
-                    // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
+                        if($response) {
+                            $this->cacheTriggeredOrder($user, $theSymbol, "BUY");
+                            // capture the executedQty or origQty of asset bought at $userUsdtBalance
+                            // and save to the logs.
+                            // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
 
-                    $log = $autoBotTrade->logs()->create([
-                        'value_bought' => $autoBotTrade->current_value,
-                        'qty_bought' => $response['executedQty'] - ($response['fills'][0]['commission'] + 100) // 100 is an arbitrary value in order to properly execute sell
-                    ]);
+                            $log = $autoBotTrade->logs()->create([
+                                'value_bought' => $autoBotTrade->current_value,
+                                'qty_bought' => $response['executedQty'] - ($response['fills'][0]['commission'] + 100) // 100 is an arbitrary value in order to properly execute sell
+                            ]);
 
-                    Log::info('saving user buy log', [$log]);
-
+                            Log::info('saving user buy log', [$log]);
+                        }
+                    } catch (\Exception $exception) {
+                        throw new \Exception($exception->getMessage());
+                    }
                 } elseif ($this->hasSellCondition()) {
-                    $lastLog = $autoBotTrade->logs->reverse()->first();
+                    try {
+                        $lastLog = $autoBotTrade->logs->reverse()->first();
 
-                    if($lastLog) {
-                        Log::info("last log", [$lastLog]);
-                        Log::info("last bought from last log: $lastLog->qty_bought");
+                        if($lastLog) {
+                            Log::info("last log", [$lastLog]);
+                            Log::info("last bought from last log: $lastLog->qty_bought");
 
-                        $response = $this->placeSellOrder($lastLog->qty_bought, $countOfSymbolsInBuy, $symbol);
+                            $response = $this->placeSellOrder($lastLog->qty_bought, $countOfSymbolsInBuy, $symbol);
 
-                        // while placing a sell order, sell based on the executedQty or origQty bought,
-                        // this replace $userUsdtBalance above with executedQty or origQty or qty_bought
-                        // and update the logs.
-                        // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
+                            // while placing a sell order, sell based on the executedQty or origQty bought,
+                            // this replace $userUsdtBalance above with executedQty or origQty or qty_bought
+                            // and update the logs.
+                            // bot_trade_logs: bot_trade_id, value_bought, qty_bought, value_sold, qty_sold
 
-                        $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
+                            if($response) {
+                                $this->cacheTriggeredOrder($user, $theSymbol, "SELL");
 
-                        $log = $lastLog->update([
-                            'value_sold' => $response['cummulativeQuoteQty'],
-                            'qty_sold' => $response['executedQty']
-                        ]);
+                                $log = $lastLog->update([
+                                    'value_sold' => $response['cummulativeQuoteQty'],
+                                    'qty_sold' => $response['executedQty']
+                                ]);
 
-                        $botTrade = $autoBotTrade->update([
-                            'current_value' => number_format($response['cummulativeQuoteQty'], 8)
-                        ]);
+                                $botTrade = $autoBotTrade->update([
+                                    'current_value' => number_format($response['cummulativeQuoteQty'], 8)
+                                ]);
 
-                        Log::info('saving user buy log', [$log, $botTrade]);
-
-//                } else {
-//                    Log::info("Not time to place an order... Still checking");
+                                Log::info('saving user buy log', [$log, $botTrade]);
+                            }
+                        }
+                    } catch (\Exception $exception) {
+                        throw new \Exception($exception->getMessage());
                     }
                 }
             }
